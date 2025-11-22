@@ -217,3 +217,170 @@ VALUES
 (2, 'productos_febrero.xlsx', 40, 40,  0, 'completado', NULL),
 (3, 'productos_marzo.xlsx',   60,  0, 60, 'error', 'Formato de columnas incorrecto');
 
+-- ==============================
+-- FUNCIONES
+-- ==============================
+
+-- ENUNCIADO: Base de datos, crea un nuevo negocio con nombre, 
+-- descripción, logo, estado (abierto/cerrado) y propietario
+DELIMITER $$
+
+CREATE PROCEDURE sp_insertar_negocio(
+    IN p_nombre VARCHAR(255),
+    IN p_descripcion VARCHAR(255),
+    IN p_imagen_logo VARCHAR(255),
+    IN p_estado_disponibilidad VARCHAR(20),  -- 'abierto' o 'cerrado'
+    IN p_id_propietario INT
+)
+BEGIN
+    INSERT INTO negocios (nombre, descripcion, imagen_logo, estado_disponibilidad, id_propietario)
+    VALUES (p_nombre, p_descripcion, p_imagen_logo, p_estado_disponibilidad, p_id_propietario);
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_insertar_producto(
+    IN p_nombre       VARCHAR(255),
+    IN p_codigo       VARCHAR(100),
+    IN p_precio       DECIMAL(10,2),
+    IN p_url_imagen   VARCHAR(255),
+    IN p_id_categoria INT,
+    IN p_id_negocio   INT
+)
+BEGIN
+    INSERT INTO productos (nombre, codigo, precio, url_imagen, id_categoria, id_negocio)
+    VALUES (p_nombre, p_codigo, p_precio, p_url_imagen, p_id_categoria, p_id_negocio);
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+
+-- ===========================================
+-- REPORTES ( 5 GAAA)
+-- ===========================================
+CREATE PROCEDURE sp_reporte_productos_por_negocio(
+    IN p_id_negocio INT
+)
+BEGIN
+    SELECT 
+        n.id_negocio,
+        n.nombre          AS negocio,
+        p.id_producto,
+        p.nombre          AS producto,
+        p.codigo,
+        p.precio,
+        c.nombre          AS categoria
+    FROM productos p
+    INNER JOIN negocios n   ON p.id_negocio = n.id_negocio
+    INNER JOIN categorias c ON p.id_categoria = c.id_categoria
+    WHERE p.id_negocio = p_id_negocio
+      AND p.activo = 1;
+END $$
+
+DELIMITER ;
+
+-- ===========================================
+DELIMITER $$
+
+CREATE PROCEDURE sp_reporte_productos_por_categoria(
+    IN p_id_categoria INT
+)
+BEGIN
+    SELECT 
+        c.id_categoria,
+        c.nombre       AS categoria,
+        p.id_producto,
+        p.nombre       AS producto,
+        p.codigo,
+        p.precio,
+        n.nombre       AS negocio
+    FROM productos p
+    INNER JOIN categorias c ON p.id_categoria = c.id_categoria
+    INNER JOIN negocios   n ON p.id_negocio   = n.id_negocio
+    WHERE p.id_categoria = p_id_categoria
+      AND p.activo = 1;
+END $$
+
+DELIMITER ;
+-- ===========================================
+-- “Muéstrame todos los productos cuyo precio esté entre X e Y,
+-- y opcionalmente de un negocio específico.”
+DELIMITER $$
+
+CREATE PROCEDURE sp_reporte_productos_rango_precio(
+    IN p_precio_min DECIMAL(10,2),
+    IN p_precio_max DECIMAL(10,2),
+    IN p_id_negocio INT  -- 0 = todos los negocios
+)
+BEGIN
+    SELECT
+        p.id_producto,
+        p.nombre        AS producto,
+        p.codigo,
+        p.precio,
+        c.nombre        AS categoria,
+        n.id_negocio,
+        n.nombre        AS negocio
+    FROM productos p
+    INNER JOIN categorias c ON p.id_categoria = c.id_categoria
+    INNER JOIN negocios   n ON p.id_negocio   = n.id_negocio
+    WHERE p.precio BETWEEN p_precio_min AND p_precio_max
+      AND p.activo = 1
+      AND (p_id_negocio = 0 OR p.id_negocio = p_id_negocio);
+END $$
+
+DELIMITER ;
+-- ============================================
+DELIMITER $$
+
+CREATE PROCEDURE sp_reporte_negocios_por_propietario(
+    IN p_id_propietario INT
+)
+BEGIN
+    SELECT 
+        u.id_usuario,
+        u.nombre        AS propietario,
+        n.id_negocio,
+        n.nombre        AS negocio,
+        n.descripcion,
+        n.estado_disponibilidad,
+        n.fecha_creacion,
+        n.activo
+    FROM negocios n
+    INNER JOIN usuarios u ON n.id_propietario = u.id_usuario
+    WHERE n.id_propietario = p_id_propietario;
+END $$
+
+DELIMITER ;
+-- ===========================================
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_reporte_cargas_masivas(
+    IN p_id_usuario INT,      -- 0 = todos los usuarios
+    IN p_estado     VARCHAR(20)  -- 'pendiente','completado','error','todos'
+)
+BEGIN
+    SELECT 
+        cm.id_carga,
+        u.id_usuario,
+        u.nombre         AS usuario,
+        cm.fecha_carga,
+        cm.nombre_archivo,
+        cm.total_registros,
+        cm.registros_exitosos,
+        cm.registros_fallidos,
+        cm.estado,
+        cm.mensaje_error
+    FROM cargas_masivas cm
+    INNER JOIN usuarios u ON cm.id_usuario = u.id_usuario
+    WHERE (p_id_usuario = 0 OR cm.id_usuario = p_id_usuario)
+      AND (p_estado = 'todos' OR cm.estado = p_estado);
+END $$
+
+DELIMITER ;
+
