@@ -45,3 +45,5 @@ CALL sp_reporte_cargas_masivas(0, 'todos');
 CALL sp_reporte_cargas_masivas(2, 'todos');
 CALL sp_reporte_cargas_masivas(0, 'error');
 CALL sp_reporte_cargas_masivas(2, 'completado');
+
+-- PAQUITA LA DEL BARRIO
