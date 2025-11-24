@@ -1,7 +1,6 @@
 -- ================================================
 --  BASE DE DATOS: db_negocios_2025
 --  Sistema de negocios + roles + permisos + productos
---  Autor: Daniel Josue Guillen Valcarcel
 -- ================================================
 DROP DATABASE IF EXISTS db_negocios_2025;
 CREATE DATABASE IF NOT EXISTS db_negocios_2025
@@ -384,3 +383,26 @@ END $$
 
 DELIMITER ;
 
+-- ==========================================
+DELIMITER $$
+
+CREATE PROCEDURE sp_obtener_usuario_login(
+    IN p_correo VARCHAR(255)
+)
+BEGIN
+    SELECT 
+        u.id_usuario,
+        u.nombre,
+        u.correo,
+        u.password_hash,
+        u.estado,
+        r.nombre AS rol
+    FROM usuarios u
+    LEFT JOIN usuario_rol ur ON u.id_usuario = ur.id_usuario
+    LEFT JOIN roles r ON ur.id_rol = r.id_rol
+    WHERE u.correo = p_correo
+      AND u.estado = 'activo'
+    LIMIT 1;
+END $$
+
+DELIMITER ;
