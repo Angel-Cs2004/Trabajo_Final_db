@@ -4,7 +4,7 @@
 //LUEGO IDETIFICAR ENTRE SI ES PSOT O GET
 // UTLIZAR OS PARAMETROS UQE SE MANDO CON EL SUBMIT 
 // SEGUN ESOS PARAMWTROS PODER VERIFICAR LA SESION 
-require_once __DIR__ . '/../models/Usuario.php';
+require_once __DIR__ . '/../models/Login.php';
 
 class AuthController
 {
