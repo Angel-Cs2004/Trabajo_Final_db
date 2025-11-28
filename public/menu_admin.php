@@ -1,21 +1,10 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Bienvenido</title>
-    <style>
-        .mensaje {
-            color: red;
-            font-size: 32px;
-            font-weight: bold;
-            text-align: center;
-            margin-top: 50px;
-        }
-    </style>
-</head>
-<body>
+<?php
+$pageTitle = 'Dashboard';
+$currentPage = 'dashboard';
+require_once '../app/views/layouts/header.php';
+require_once '../app/views/layouts/navbar.php';
+?>
 
-    <div class="mensaje">Bienvenido Admin</div>
 
-</body>
-</html>
+
+<?php require_once '../app/views/layouts/footer.php'; ?>
