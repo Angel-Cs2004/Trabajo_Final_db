@@ -1,38 +1,43 @@
 <?php
-$pageTitle = "Crear Rol";
+$pageTitle = "Editar Rol";
 require __DIR__ . '/../layouts/header.php';
 ?>
 
 <div class="bg-white w-full max-w-lg mx-auto rounded-lg shadow-lg p-6">
-    <h3 class="text-lg font-semibold mb-4">Crear rol</h3>
+    <h3 class="text-lg font-semibold mb-4">Editar rol</h3>
 
-    <form action="index.php?c=roles&a=guardar" method="POST" class="space-y-4">
+    <form action="index.php?c=roles&a=actualizar" method="POST" class="space-y-4">
+
+        <input type="hidden" name="id_rol" value="<?= $rol['id_rol'] ?>">
 
         <div>
             <label class="block text-sm font-medium mb-1">* Nombre:</label>
-            <input name="nombre" type="text" class="w-full border rounded px-3 py-2" required>
+            <input name="nombre" type="text"
+                   value="<?= htmlspecialchars($rol['nombre']) ?>"
+                   class="w-full border rounded px-3 py-2" required>
         </div>
 
         <div>
             <label class="block text-sm font-medium mb-1">Descripción:</label>
-            <textarea name="descripcion" class="w-full border rounded px-3 py-2"></textarea>
+            <textarea name="descripcion" class="w-full border rounded px-3 py-2"><?= htmlspecialchars($rol['descripcion'] ?? '') ?></textarea>
         </div>
 
         <div>
             <label class="block text-sm font-medium mb-1">¿Es Super Admin?</label>
             <select name="es_superadmin" class="w-full border rounded px-3 py-2">
-                <option value="0">No</option>
-                <option value="1">Sí</option>
+                <option value="0" <?= $rol['es_superadmin'] ? '' : 'selected' ?>>No</option>
+                <option value="1" <?= $rol['es_superadmin'] ? 'selected' : '' ?>>Sí</option>
             </select>
         </div>
 
         <div class="flex justify-end gap-2 pt-2">
             <a href="index.php?c=roles&a=index"
                class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
-               Cancelar
+                Cancelar
             </a>
+
             <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
-                Guardar
+               Actualizar
             </button>
         </div>
 
