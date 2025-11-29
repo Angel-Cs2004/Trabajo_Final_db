@@ -2,48 +2,140 @@
 
 class Usuario
 {
-    private $conn; // mysqli
+    private mysqli $conn;
 
     public function __construct(mysqli $conn)
     {
-        //conectamos con la base de datos
         $this->conn = $conn;
     }
 
+    // Obtener usuario por correo (para login)
     public function obtenerPorCorreo(string $correo): ?array
     {
-        //el ? es como un placeholder
-        $sql = "CALL sp_obtener_usuario_login(?)";
-        //Cabe aclarar que "sp_obtener_usuario_login(?)"
-        // esta definida en bd_trabajo_final
-        
-        // Se prepara la sentencias con el metodo "prepare"
-        $stmt = $this->conn->prepare($sql);
-        if (!$stmt) {
-            return null; // error preparando
-        }
+        $sql = "SELECT 
+                    u.id_usuario,
+                    u.nombre,
+                    u.correo,
+                    u.identificacion,
+                    u.telefono,
+                    u.password_hash,
+                    u.estado,
+                    r.nombre AS rol
+                FROM usuarios u
+                LEFT JOIN usuario_rol ur ON u.id_usuario = ur.id_usuario
+                LEFT JOIN roles r ON ur.id_rol = r.id_rol
+                WHERE u.correo = ?
+                  AND u.estado = 'activo'
+                LIMIT 1";
 
-        // Inyecto el parametro  usuario en  sql = "?" 
-        $stmt->bind_param('s', $correo);
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("s", $correo);
         $stmt->execute();
 
-        // Obtener resultados
         $result = $stmt->get_result();
-        if (!$result) {
-            return null;
-        }
-
-        // TE DEVUELVE UN ARRAY ASOCIATIVO ==>
-        // $usuarios === $usuario["name de columna"] : valor
-        //$usuario['nombre']
-        //$usuario['correo']
-        //$usuario['password_hash']
         $usuario = $result->fetch_assoc();
 
-        // Limpieza por llamadas a SP en mysqli
-        $stmt->close();
-        while ($this->conn->more_results() && $this->conn->next_result()) {;}
+        return $usuario ?: null;
+    }
+
+    // Obtener todos los usuarios
+    public function obtenerTodos(): array
+    {
+        $sql = "SELECT 
+                    u.id_usuario,
+                    u.nombre,
+                    u.correo,
+                    u.identificacion,
+                    u.telefono,
+                    u.estado,
+                    r.nombre AS rol
+                FROM usuarios u
+                LEFT JOIN usuario_rol ur ON u.id_usuario = ur.id_usuario
+                LEFT JOIN roles r ON ur.id_rol = r.id_rol
+                ORDER BY u.nombre ASC";
+
+        $result = $this->conn->query($sql);
+        return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+    }
+
+    // Obtener usuario por ID
+    public function obtenerPorId(int $id): ?array
+    {
+        $sql = "SELECT 
+                    u.*,
+                    r.nombre AS rol
+                FROM usuarios u
+                LEFT JOIN usuario_rol ur ON u.id_usuario = ur.id_usuario
+                LEFT JOIN roles r ON ur.id_rol = r.id_rol
+                WHERE u.id_usuario = ?
+                LIMIT 1";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        $usuario = $result->fetch_assoc();
 
         return $usuario ?: null;
+    }
+
+    // Crear nuevo usuario
+    public function crear($nombre, $correo, $identificacion, $telefono, $password, $estado, $rol)
+    {
+        $stmt = $this->conn->prepare(
+            "INSERT INTO usuarios (nombre, correo, identificacion, telefono, password_hash, estado)
+             VALUES (?, ?, ?, ?, ?, ?)"
+        );
+        $stmt->bind_param("ssssss", $nombre, $correo, $identificacion, $telefono, $password, $estado);
+        $stmt->execute();
+
+        $idUsuario = $stmt->insert_id;
+
+        $sql = "INSERT INTO usuario_rol (id_usuario, id_rol)
+                VALUES (?, (SELECT id_rol FROM roles WHERE nombre = ?))";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("is", $idUsuario, $rol);
+        $stmt->execute();
+    }
+
+    // Actualizar usuario (con clave)
+    public function actualizar($id, $nombre, $correo, $identificacion, $telefono, $password, $estado, $rol)
+    {
+        $stmt = $this->conn->prepare(
+            "UPDATE usuarios 
+             SET nombre=?, correo=?, identificacion=?, telefono=?, password_hash=?, estado=?
+             WHERE id_usuario=?"
+        );
+        $stmt->bind_param("ssssssi", $nombre, $correo, $identificacion, $telefono, $password, $estado, $id);
+        $stmt->execute();
+
+        $stmt = $this->conn->prepare(
+            "UPDATE usuario_rol 
+             SET id_rol = (SELECT id_rol FROM roles WHERE nombre = ?)
+             WHERE id_usuario = ?"
+        );
+        $stmt->bind_param("si", $rol, $id);
+        $stmt->execute();
+    }
+
+    // Actualizar usuario (sin cambiar clave)
+    public function actualizarSinClave($id, $nombre, $correo, $identificacion, $telefono, $estado, $rol)
+    {
+        $stmt = $this->conn->prepare(
+            "UPDATE usuarios 
+             SET nombre=?, correo=?, identificacion=?, telefono=?, estado=?
+             WHERE id_usuario=?"
+        );
+        $stmt->bind_param("sssssi", $nombre, $correo, $identificacion, $telefono, $estado, $id);
+        $stmt->execute();
+
+        $stmt = $this->conn->prepare(
+            "UPDATE usuario_rol 
+             SET id_rol = (SELECT id_rol FROM roles WHERE nombre = ?)
+             WHERE id_usuario = ?"
+        );
+        $stmt->bind_param("si", $rol, $id);
+        $stmt->execute();
     }
 }
