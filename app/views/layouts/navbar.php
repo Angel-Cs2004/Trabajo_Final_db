@@ -102,7 +102,7 @@
             <div id="submenuNegocios" class="ml-4 mt-2 space-y-1 hidden">
                 <a href="index.php?c=negocio&a=listar"
                     class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Negocios</a>
-                <a href="index.php?c=negocio&a=perfil" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Perfil negocios</a>
+                <a href="index.php?c=negocio&a=perfil" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Mis negocios</a>
             </div>
         </div>
 
