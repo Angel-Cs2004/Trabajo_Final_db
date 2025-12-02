@@ -186,4 +186,13 @@ class NegocioController
         header("Location: index.php?c=negocio&a=listar");
         exit;
     }
+
+    public function perfil()
+    {
+        $this->asegurarSesion();
+
+        $modeloNegocio = new Negocio($this->conn);
+
+        require __DIR__ . '/../views/negocios/perfil.php';
+    }
 }

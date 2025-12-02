@@ -6,12 +6,14 @@ require_once __DIR__ . '/../app/config/db.php';
 // Controladores
 require_once __DIR__ . '/../app/controllers/AuthController.php';
 require_once __DIR__ . '/../app/controllers/HomeController.php';
-require_once __DIR__ . '/../app/controllers/ProductoController.php';
+require_once __DIR__ . '/../app/controllers/ProductoNegocioController.php';
+require_once __DIR__ . '/../app/controllers/ProductoGeneralController.php';
 require_once __DIR__ . '/../app/controllers/RolesController.php';
-require_once __DIR__ . '/../app/controllers/ReporteController.php';
 require_once __DIR__ . '/../app/controllers/ParametroController.php';
 require_once __DIR__ . '/../app/controllers/UsuariosController.php';
 require_once __DIR__ . '/../app/controllers/NegocioController.php';
+require_once __DIR__ . '/../app/controllers/ReportesController.php';
+require_once __DIR__ . '/../app/controllers/CategoriasController.php';
 
 // Router MVC básico
 $c = $_GET['c'] ?? 'auth';   
@@ -124,6 +126,8 @@ switch ($c) {
             $controller->editar();
         } elseif ($a === 'actualizar') {
             $controller->actualizar();
+        } elseif ($a === 'perfil') {
+            $controller->perfil();    
         } else {
             header('Location: index.php?c=negocio&a=listar');
             exit;
@@ -131,8 +135,8 @@ switch ($c) {
         break;
 
     // PRODUCTOS
-    case 'producto':
-        $controller = new ProductoController($conn);
+    case 'productoNegocio':
+        $controller = new ProductoNegocioController($conn);
 
         if ($a === 'listar') {
             $controller->listar();
@@ -141,7 +145,37 @@ switch ($c) {
         } elseif ($a === 'guardar') {
             $controller->guardar();
         } else {
-            header('Location: index.php?c=producto&a=listar');
+            header('Location: index.php?c=productoTienda&a=listar');
+            exit;
+        }
+        break;
+
+    case 'productoGeneral':
+        $controller = new ProductoGeneralController($conn);
+
+        if ($a === 'listar') {
+            $controller->listar();
+        } elseif ($a === 'crear') {
+            $controller->crear();
+        } elseif ($a === 'guardar') {
+            $controller->guardar();
+        } else {
+            header('Location: index.php?c=productoGeneral&a=listar');
+            exit;
+        }
+        break;
+
+    case 'categorias':
+        $controller = new CategoriasController($conn);
+
+        if ($a === 'listar') {
+            $controller->listar();
+        } elseif ($a === 'crear') {
+            $controller->crear();
+        } elseif ($a === 'guardar') {
+            $controller->guardar();
+        } else {
+            header('Location: index.php?c=productoTienda&a=listar');
             exit;
         }
         break;
@@ -165,19 +199,33 @@ switch ($c) {
             exit;
         }
         break;
-    case 'reporte':
-        $controller = new ReporteController($conn);
 
-        if ($a === 'productosPorNegocio') {
-            $controller->productosPorNegocio();
-        } elseif ($a === 'productosPorCategoria') {
-            $controller->productosPorCategoria();
-        } elseif ($a === 'productosRango') {
-            $controller->productosRango();
-        } elseif ($a === 'negociosPorPropietario') {
-            $controller->negociosPorPropietario();
-        } elseif ($a === 'cargasMasivas') {
-            $controller->cargasMasivas();
+    case 'negocio':
+        $controller = new NegocioController($conn);
+
+        if ($a === 'listar') {
+            $controller->listar();
+        } elseif ($a === 'crear') {
+            $controller->crear();
+        } elseif ($a === 'guardar') {
+            $controller->guardar();
+        } elseif ($a === 'editar') {
+            $controller->editar();
+        } elseif ($a === 'actualizar') {
+            $controller->actualizar();
+        } else {
+            header('Location: index.php?c=negocio&a=listar');
+            exit;
+        }
+        break;
+
+    case 'reporte':
+        $controller = new ReportesController($conn);
+
+        if ($a === 'reporteGeneral') {
+            $controller->ReporteGeneral();
+        } elseif ($a === 'reporteNegocio') {
+            $controller->ReporteNegocio();
         } else {
             header('Location: index.php?c=home&a=dashboardAdmin');
             exit;

@@ -36,6 +36,16 @@ require __DIR__ . '/../layouts/header.php';
                 <p class="text-gray-500 text-sm">Administración de roles del sistema</p>
             </a>
 
+            <!-- Parámetros -->
+            <a href="index.php?c=parametros&a=index"
+            class="p-6 bg-white shadow rounded-lg hover:shadow-lg transition block">
+                <div class="text-teal-600 text-3xl mb-3">
+                    <i class="bi bi-sliders"></i>
+                </div>
+                <h3 class="text-lg font-semibold">Parámetros</h3>
+                <p class="text-gray-500 text-sm">Configuración general del sistema</p>
+            </a>
+
             <!-- Negocios -->
             <a href="index.php?c=negocio&a=listar"
             class="p-6 bg-white shadow rounded-lg hover:shadow-lg transition block">
@@ -47,7 +57,7 @@ require __DIR__ . '/../layouts/header.php';
             </a>
 
             <!-- Productos -->
-            <a href="index.php?c=producto&a=listar"
+            <a href="index.php?c=productoGeneral&a=listar"
             class="p-6 bg-white shadow rounded-lg hover:shadow-lg transition block">
                 <div class="text-yellow-600 text-3xl mb-3">
                     <i class="bi bi-basket"></i>
@@ -57,7 +67,7 @@ require __DIR__ . '/../layouts/header.php';
             </a>
 
             <!-- Categorías -->
-            <a href="index.php?c=categoria&a=listar"
+            <a href="index.php?c=categorias&a=listar"
             class="p-6 bg-white shadow rounded-lg hover:shadow-lg transition block">
                 <div class="text-orange-600 text-3xl mb-3">
                     <i class="bi bi-tags"></i>
@@ -67,7 +77,7 @@ require __DIR__ . '/../layouts/header.php';
             </a>
 
             <!-- Reportes -->
-            <a href="index.php?c=reporte&a=productosPorNegocio"
+            <a href="index.php?c=reporte&a=reporteGeneral"
             class="p-6 bg-white shadow rounded-lg hover:shadow-lg transition block">
                 <div class="text-red-600 text-3xl mb-3">
                     <i class="bi bi-bar-chart"></i>
@@ -76,7 +86,7 @@ require __DIR__ . '/../layouts/header.php';
                 <p class="text-gray-500 text-sm">Reportes generales del sistema</p>
             </a>
 
-            <a href="index.php?c=negocio&a=listar"
+            <a href="index.php?c=negocio&a=perfil"
             class="p-6 bg-white shadow rounded-lg hover:shadow-lg transition block">
                 <div class="text-blue-700 text-3xl mb-3">
                     <i class="bi bi-shop-window"></i>
@@ -85,7 +95,7 @@ require __DIR__ . '/../layouts/header.php';
                 <p class="text-gray-500 text-sm">Edit la informacion del perfil de tu negocio</p>
             </a>
 
-            <a href="index.php?c=producto&a=listar"
+            <a href="index.php?c=productoNegocio&a=listar"
             class="p-6 bg-white shadow rounded-lg hover:shadow-lg transition block">
                 <div class="text-yellow-600 text-3xl mb-3">
                     <i class="bi bi-basket"></i>
@@ -94,7 +104,7 @@ require __DIR__ . '/../layouts/header.php';
                 <p class="text-gray-500 text-sm">Administra los productos de tus negocios</p>
             </a>
 
-            <a href="index.php?c=reporte&a=productosPorNegocio"
+            <a href="index.php?c=reporte&a=reporteNegocio"
             class="p-6 bg-white shadow rounded-lg hover:shadow-lg transition block">
                 <div class="text-red-600 text-3xl mb-3">
                     <i class="bi bi-graph-up"></i>
