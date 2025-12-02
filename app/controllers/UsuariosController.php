@@ -1,0 +1,135 @@
+<?php
+
+
+require_once __DIR__ . '/../models/Usuario.php';
+
+class UsuariosController
+{
+    private mysqli $conn;
+
+    public function __construct(mysqli $conn)
+    {
+        $this->conn = $conn;
+    }
+
+    // Verifica sesión y permisos de administrador
+    private function asegurarSesionAdmin()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['id_usuario'])) {
+            header("Location: index.php?c=auth&a=login");
+            exit;
+        }
+
+        if ($_SESSION['rol'] !== 'admin' && $_SESSION['rol'] !== 'super_admin') {
+            header("Location: index.php?c=home&a=dashboardProveedor");
+            exit;
+        }
+    }
+
+    // Listar usuarios
+    public function index()
+    {
+        $this->asegurarSesionAdmin();
+
+        $modelo = new Usuario($this->conn);
+        $usuarios = $modelo->obtenerTodos();
+
+        require __DIR__ . '/../views/usuarios/index.php';
+    }
+
+    // Formulario de creación
+    public function crear()
+    {
+        $this->asegurarSesionAdmin();
+        $modelo = new Usuario($this->conn);
+        $rolesUsuarios = $modelo->obtenerRoles();
+        require __DIR__ . '/../views/usuarios/crear.php';
+    }
+
+    // Guardar nuevo usuario
+    public function guardar()
+    {
+        $this->asegurarSesionAdmin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header("Location: index.php?c=usuarios&a=index");
+            exit;
+        }
+
+        $nombre         = trim($_POST['nombre'] ?? '');
+        $correo         = trim($_POST['correo'] ?? '');
+        $identificacion = trim($_POST['identificacion'] ?? '');
+        $telefono       = trim($_POST['telefono'] ?? '');
+        $password       = trim($_POST['clave'] ?? '');
+        $rol            = trim($_POST['rol'] ?? '');
+        $estado         = ($_POST['activo'] ?? '0') == '1' ? 'activo' : 'inactivo';
+
+        if ($nombre === '' || $correo === '' || $password === '' || $rol === '') {
+            header("Location: index.php?c=usuarios&a=crear");
+            exit;
+        }
+
+        $passwordHash = $password; 
+
+        $modelo = new Usuario($this->conn);
+        $modelo->crear($nombre, $correo, $identificacion, $telefono, $passwordHash, $estado, $rol);
+
+        header("Location: index.php?c=usuarios&a=index");
+        exit;
+    }
+
+    // Formulario de edición
+    public function editar()
+    {
+        $this->asegurarSesionAdmin();
+
+        $id = intval($_GET['id'] ?? 0);
+        if ($id <= 0) {
+            header("Location: index.php?c=usuarios&a=index");
+            exit;
+        }
+
+        $modelo = new Usuario($this->conn);
+        $usuario = $modelo->obtenerPorId($id);
+        $rolesUsuarios = $modelo->obtenerRoles();
+
+        require __DIR__ . '/../views/usuarios/editar.php';
+    }
+
+    // Actualizar usuario
+    public function actualizar()
+    {
+        $this->asegurarSesionAdmin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header("Location: index.php?c=usuarios&a=index");
+            exit;
+        }
+
+        $id             = intval($_POST['id_usuario'] ?? 0);
+        $nombre         = trim($_POST['nombre'] ?? '');
+        $correo         = trim($_POST['correo'] ?? '');
+        $identificacion = trim($_POST['identificacion'] ?? '');
+        $telefono       = trim($_POST['telefono'] ?? '');
+        $estado         = ($_POST['activo'] ?? '0') == '1' ? 'activo' : 'inactivo';
+        $rol            = trim($_POST['rol'] ?? '');
+        $password       = trim($_POST['clave'] ?? '');
+
+        $modelo = new Usuario($this->conn);
+
+        if ($password === '') {
+            $modelo->actualizarSinClave($id, $nombre, $correo, $identificacion, $telefono, $estado, $rol);
+        } else {
+            $modelo->actualizar($id, $nombre, $correo, $identificacion, $telefono, $password, $estado, $rol);
+        }
+
+        header("Location: index.php?c=usuarios&a=index");
+        exit;
+    }
+
+    //
+}
