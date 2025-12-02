@@ -1,5 +1,6 @@
 <?php
 
+
 require_once __DIR__ . '/../models/Usuario.php';
 
 class UsuariosController
@@ -44,6 +45,8 @@ class UsuariosController
     public function crear()
     {
         $this->asegurarSesionAdmin();
+        $modelo = new Usuario($this->conn);
+        $rolesUsuarios = $modelo->obtenerRoles();
         require __DIR__ . '/../views/usuarios/crear.php';
     }
 
@@ -70,7 +73,7 @@ class UsuariosController
             exit;
         }
 
-        $passwordHash = $password; // se mantiene igual
+        $passwordHash = $password; 
 
         $modelo = new Usuario($this->conn);
         $modelo->crear($nombre, $correo, $identificacion, $telefono, $passwordHash, $estado, $rol);
@@ -92,8 +95,9 @@ class UsuariosController
 
         $modelo = new Usuario($this->conn);
         $usuario = $modelo->obtenerPorId($id);
+        $rolesUsuarios = $modelo->obtenerRoles();
 
-        require __DIR__ . '/../views/usuarios/actualizar.php';
+        require __DIR__ . '/../views/usuarios/editar.php';
     }
 
     // Actualizar usuario
@@ -126,4 +130,6 @@ class UsuariosController
         header("Location: index.php?c=usuarios&a=index");
         exit;
     }
+
+    //
 }

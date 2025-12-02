@@ -2,7 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-$rol    = $_SESSION['rol']    ?? null;
+$rolUsuario    = $_SESSION['rol']    ?? null;
 $nombre = $_SESSION['nombre'] ?? 'Usuario';
 $pageTitle = $pageTitle ?? 'Dashboard - Yahuarcocha';
 
@@ -21,9 +21,9 @@ $pageTitle = $pageTitle ?? 'Dashboard - Yahuarcocha';
     <div class="flex h-screen">
         <!-- Sidebar -->
         <?php
-            if ($rol === 'admin' || $rol === 'super_admin') {
+            if ($rolUsuario === 'admin' || $rolUsuario === 'super_admin') {
                 include __DIR__ . '/navbar.php';
-            } elseif ($rol === 'proveedor') {
+            } elseif ($rolUsuario === 'proveedor') {
                 include __DIR__ . '/navbar2.php';
             }
         ?>
@@ -43,4 +43,4 @@ $pageTitle = $pageTitle ?? 'Dashboard - Yahuarcocha';
                 </div>
             </header>
 
-            <main class="flex-1 p-6 overflow-auto">
+

@@ -78,7 +78,7 @@ class ParametrosController
         exit;
     }
 
-    // Formulario de edición
+    // Formulario de edicion
     public function editar()
     {
         $this->asegurarSesionAdmin();
@@ -92,10 +92,10 @@ class ParametrosController
         $modelo = new ParametroImagen($this->conn);
         $param = $modelo->obtenerPorId($id);
 
-        require __DIR__ . '/../views/parametros/actualizar.php';
+        require __DIR__ . '/../views/parametros/editar.php';
     }
 
-    // Actualizar parámetro
+    // Actualizar parametro
     public function actualizar()
     {
         $this->asegurarSesionAdmin();

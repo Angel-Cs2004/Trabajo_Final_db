@@ -1,89 +1,106 @@
 <?php
-$pageTitle = "Actualizar Usuario";
+$pageTitle = "Crear Usuario";
 require __DIR__ . '/../layouts/header.php';
 ?>
 
-<div class="bg-white w-full max-w-lg mx-auto rounded-lg shadow-lg p-6">
-    <h3 class="text-lg font-semibold mb-4">Actualizar usuario</h3>
+<main class="flex-1 px-10 pt-14 pb-14 overflow-auto">
 
-    <form action="index.php?c=usuarios&a=actualizar" method="POST" class="space-y-4">
+    <div class="bg-white w-full max-w-5xl mx-auto rounded-lg shadow-lg p-8">
 
-        <input type="hidden" name="id_usuario" value="<?= $usuario['id_usuario'] ?>">
+        <h3 class="text-xl font-semibold mb-6">Crear usuario</h3>
 
-        <div>
-            <label class="block text-sm font-medium mb-1">* Nombre:</label>
-            <input name="nombre" 
-                   value="<?= htmlspecialchars($usuario['nombre'] ?? '-') ?>" 
-                   type="text" 
-                   class="w-full border rounded px-3 py-2" 
-                   required>
-        </div>
+        <form action="index.php?c=usuarios&a=guardar" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <div>
-            <label class="block text-sm font-medium mb-1">* Correo:</label>
-            <input name="correo" 
-                   value="<?= htmlspecialchars($usuario['correo'] ?? '-') ?>" 
-                   type="email" 
-                   class="w-full border rounded px-3 py-2" 
-                   required>
-        </div>
+            <!-- Nombre -->
+            <div>
+                <label class="block text-sm font-medium mb-1">* Nombre:</label>
+                <input name="nombre" 
+                    type="text" 
+                    class="w-full border rounded-lg px-4 py-2" 
+                    required>
+            </div>
 
-        <div>
-            <label class="block text-sm font-medium mb-1">* Identificación:</label>
-            <input name="identificacion" 
-                   value="<?= htmlspecialchars($usuario['identificacion'] ?? '-') ?>" 
-                   type="text" 
-                   class="w-full border rounded px-3 py-2" 
-                   required>
-        </div>
+            <!-- Correo -->
+            <div>
+                <label class="block text-sm font-medium mb-1">* Correo:</label>
+                <input name="correo" 
+                    type="email" 
+                    class="w-full border rounded-lg px-4 py-2" 
+                    required>
+            </div>
 
-        <div>
-            <label class="block text-sm font-medium mb-1">Teléfono:</label>
-            <input name="telefono" 
-                   value="<?= htmlspecialchars($usuario['telefono'] ?? '-') ?>" 
-                   type="tel" 
-                   class="w-full border rounded px-3 py-2">
-        </div>
+            <!-- Identificación -->
+            <div>
+                <label class="block text-sm font-medium mb-1">* Identificación:</label>
+                <input name="identificacion" 
+                    type="text" 
+                    class="w-full border rounded-lg px-4 py-2" 
+                    required>
+            </div>
 
-        <div>
-            <label class="block text-sm font-medium mb-1">Nueva Contraseña (dejar vacío para no cambiar):</label>
-            <input name="clave" 
-                   type="password" 
-                   class="w-full border rounded px-3 py-2">
-        </div>
+            <!-- Teléfono -->
+            <div>
+                <label class="block text-sm font-medium mb-1">* Teléfono:</label>
+                <input name="telefono" 
+                    type="text" 
+                    class="w-full border rounded-lg px-4 py-2">
+            </div>
 
-        <div>
-            <label class="block text-sm font-medium mb-1">* Rol:</label>
-            <select name="rol" class="w-full border rounded px-3 py-2" required>
-                <option value="super_admin" <?= ($usuario['rol'] ?? '') === 'super_admin' ? 'selected' : '' ?>>Super Admin</option>
-                <option value="admin" <?= ($usuario['rol'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin</option>
-                <option value="proveedor" <?= ($usuario['rol'] ?? '') === 'proveedor' ? 'selected' : '' ?>>Proveedor</option>
-            </select>
-        </div>
+            <!-- Contraseña -->
+            <div>
+                <label class="block text-sm font-medium mb-1">* Contraseña:</label>
+                <input name="clave" 
+                    type="password" 
+                    class="w-full border rounded-lg px-4 py-2" 
+                    required>
+            </div>
 
-        <div class="flex items-center">
-            <input name="activo" 
-                   type="checkbox" 
-                   value="1" 
-                   class="w-4 h-4 text-green-600"
-                   <?= ($usuario['estado'] === 'activo' ? 'checked' : '') ?>>
-            <label class="ml-2 text-sm font-medium">Activo</label>
-        </div>
+            <!-- Rol -->
+            <!-- Rol -->
+            <div>
+                <label class="block text-sm font-medium mb-1">* Rol:</label>
+                <select name="rol" 
+                        class="w-full border rounded-lg px-4 py-2" 
+                        required>
+                    <option value="">Seleccionar</option>
 
-        <div class="flex justify-end gap-2 pt-2">
-            <a href="index.php?c=usuarios&a=index" 
-               class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
-                Cancelar
-            </a>
+                    <?php foreach ($rolesUsuarios as $rol): ?>
+                        <option value="<?= htmlspecialchars($rol['nombre']) ?>">
+                            <?= htmlspecialchars(ucfirst($rol['nombre'])) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-            <button type="submit" 
-                    name="actualizar" 
-                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
-                Actualizar
-            </button>
-        </div>
 
-    </form>
-</div>
+            <!-- Estado -->
+            <div class="flex items-center col-span-2 pt-2">
+                <input name="activo" 
+                    type="checkbox" 
+                    value="1" 
+                    class="w-5 h-5 text-green-600 border rounded">
+                <label class="ml-2 text-sm font-medium">Activo</label>
+            </div>
+
+            <!-- Botones -->
+            <div class="col-span-2 flex justify-end gap-3 pt-6">
+
+                <a href="index.php?c=usuarios&a=index" 
+                class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg">
+                    Cancelar
+                </a>
+
+                <button type="submit" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg">
+                    Guardar
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</main>
 
 <?php require __DIR__ . '/../layouts/footer.php'; ?>

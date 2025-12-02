@@ -9,7 +9,7 @@ class Usuario
         $this->conn = $conn;
     }
 
-    // Obtener usuario por correo (para login)
+    // Obtener usuario por correo 
     public function obtenerPorCorreo(string $correo): ?array
     {
         $sql = "SELECT 
@@ -138,4 +138,15 @@ class Usuario
         $stmt->bind_param("si", $rol, $id);
         $stmt->execute();
     }
+
+    public function obtenerRoles(): array
+    {
+        $sql = "SELECT id_rol, nombre FROM roles ORDER BY nombre ASC";
+        $result = $this->conn->query($sql);
+
+        return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+    }
+
+
+    
 }

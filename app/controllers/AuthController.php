@@ -39,7 +39,6 @@ class AuthController
                         $_SESSION['correo']     = $usuarioBD['correo'];
                         $_SESSION['rol']        = $usuarioBD['rol'];
 
-                        // Redireccion por rol
                         if ($_SESSION['rol'] === "admin" || $_SESSION['rol'] === "super_admin") {
                             header("Location: index.php?c=home&a=dashboardAdmin");
                         } else {

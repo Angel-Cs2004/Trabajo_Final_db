@@ -15,8 +15,7 @@ class Role
         $sql = "SELECT 
                     id_rol,
                     nombre,
-                    descripcion,
-                    es_superadmin
+                    descripcion
                 FROM roles
                 ORDER BY nombre ASC";
 
@@ -30,8 +29,7 @@ class Role
         $sql = "SELECT 
                     id_rol,
                     nombre,
-                    descripcion,
-                    es_superadmin
+                    descripcion
                 FROM roles
                 WHERE id_rol = ?
                 LIMIT 1";
@@ -46,26 +44,28 @@ class Role
         return $rol ?: null;
     }
 
+    
+
     // Crear nuevo rol
-    public function crear($nombre, $descripcion, $es_superadmin)
+    public function crear($nombre, $descripcion)
     {
         $stmt = $this->conn->prepare(
-            "INSERT INTO roles (nombre, descripcion, es_superadmin)
-             VALUES (?, ?, ?)"
+            "INSERT INTO roles (nombre, descripcion)
+             VALUES (?, ?)"
         );
-        $stmt->bind_param("ssi", $nombre, $descripcion, $es_superadmin);
+        $stmt->bind_param("ss", $nombre, $descripcion);
         $stmt->execute();
     }
 
     // Actualizar rol existente
-    public function actualizar($id, $nombre, $descripcion, $es_superadmin)
+    public function actualizar($id, $nombre, $descripcion)
     {
         $stmt = $this->conn->prepare(
             "UPDATE roles
-             SET nombre=?, descripcion=?, es_superadmin=?
+             SET nombre=?, descripcion=?
              WHERE id_rol=?"
         );
-        $stmt->bind_param("ssii", $nombre, $descripcion, $es_superadmin, $id);
+        $stmt->bind_param("ssi", $nombre, $descripcion, $id);
         $stmt->execute();
     }
 
@@ -77,3 +77,4 @@ class Role
         $stmt->execute();
     }
 }
+

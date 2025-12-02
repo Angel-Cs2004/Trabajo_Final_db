@@ -6,12 +6,12 @@ require_once __DIR__ . '/../app/config/db.php';
 // Controladores
 require_once __DIR__ . '/../app/controllers/AuthController.php';
 require_once __DIR__ . '/../app/controllers/HomeController.php';
-require_once __DIR__ . '/../app/controllers/NegocioController.php';
 require_once __DIR__ . '/../app/controllers/ProductoController.php';
 require_once __DIR__ . '/../app/controllers/RolesController.php';
 require_once __DIR__ . '/../app/controllers/ReporteController.php';
 require_once __DIR__ . '/../app/controllers/ParametroController.php';
 require_once __DIR__ . '/../app/controllers/UsuariosController.php';
+require_once __DIR__ . '/../app/controllers/NegocioController.php';
 
 // Router MVC básico
 $c = $_GET['c'] ?? 'auth';   
@@ -115,7 +115,7 @@ switch ($c) {
         $controller = new NegocioController($conn);
 
         if ($a === 'listar') {
-            $controller->listar();
+            $controller->index();
         } elseif ($a === 'crear') {
             $controller->crear();
         } elseif ($a === 'guardar') {
@@ -147,6 +147,24 @@ switch ($c) {
         break;
 
     // REPORTES
+    case 'negocio':
+        $controller = new NegocioController($conn);
+
+        if ($a === 'listar') {
+            $controller->listar();
+        } elseif ($a === 'crear') {
+            $controller->crear();
+        } elseif ($a === 'guardar') {
+            $controller->guardar();
+        } elseif ($a === 'editar') {
+            $controller->editar();
+        } elseif ($a === 'actualizar') {
+            $controller->actualizar();
+        } else {
+            header('Location: index.php?c=negocio&a=listar');
+            exit;
+        }
+        break;
     case 'reporte':
         $controller = new ReporteController($conn);
 

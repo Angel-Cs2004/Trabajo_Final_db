@@ -59,7 +59,6 @@ class RolesController
 
         $nombre         = trim($_POST['nombre'] ?? '');
         $descripcion    = trim($_POST['descripcion'] ?? '');
-        $es_superadmin  = intval($_POST['es_superadmin'] ?? 0);
 
         if ($nombre === '') {
             header("Location: index.php?c=roles&a=crear");
@@ -67,7 +66,7 @@ class RolesController
         }
 
         $modelo = new Role($this->conn);
-        $modelo->crear($nombre, $descripcion, $es_superadmin);
+        $modelo->crear($nombre, $descripcion);
 
         header("Location: index.php?c=roles&a=index");
         exit;
@@ -87,7 +86,7 @@ class RolesController
         $modelo = new Role($this->conn);
         $rol = $modelo->obtenerPorId($id);
 
-        require __DIR__ . '/../views/roles/actualizar.php';
+        require __DIR__ . '/../views/roles/editar.php';
     }
 
     // Actualizar rol
@@ -103,7 +102,6 @@ class RolesController
         $id            = intval($_POST['id_rol'] ?? 0);
         $nombre        = trim($_POST['nombre'] ?? '');
         $descripcion   = trim($_POST['descripcion'] ?? '');
-        $es_superadmin = intval($_POST['es_superadmin'] ?? 0);
 
         if ($id <= 0 || $nombre === '') {
             header("Location: index.php?c=roles&a=index");
@@ -111,7 +109,7 @@ class RolesController
         }
 
         $modelo = new Role($this->conn);
-        $modelo->actualizar($id, $nombre, $descripcion, $es_superadmin);
+        $modelo->actualizar($id, $nombre, $descripcion);
 
         header("Location: index.php?c=roles&a=index");
         exit;
