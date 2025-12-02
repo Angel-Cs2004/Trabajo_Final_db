@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/Negocio.php';
-require_once __DIR__ . '/../models/Usuario.php';
+require_once __DIR__ . '/../models/Usuarios.php';
 
 class NegocioController
 {
@@ -50,7 +50,7 @@ class NegocioController
 
         // Si es admin → puede asignar propietario
         if ($_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'super_admin') {
-            $modeloUsuario = new Usuario($this->conn);
+            $modeloUsuario = new Usuarios($this->conn);
             $usuarios = $modeloUsuario->obtenerTodos();
         } else {
             // Si es propietario → solo él mismo
@@ -131,7 +131,7 @@ class NegocioController
         }
 
         if ($_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'super_admin') {
-            $modeloUsuario = new Usuario($this->conn);
+            $modeloUsuario = new Usuarios($this->conn);
             $usuarios = $modeloUsuario->obtenerTodos();
         } else {
             $usuarios = [];
