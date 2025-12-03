@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../models/Usuario.php';
+require_once __DIR__ . '/../models/Usuarios.php';
 
 class AuthController
 {
@@ -25,7 +25,7 @@ class AuthController
                 $mensajeError = "Debes completar correo y contraseña.";
             } else {
 
-                $modeloUsuario = new Usuario($this->conn);
+                $modeloUsuario = new Usuarios($this->conn);
                 $usuarioBD = $modeloUsuario->obtenerPorCorreo($correo);
 
                 if (!$usuarioBD) {
