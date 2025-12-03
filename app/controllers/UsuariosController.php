@@ -1,7 +1,6 @@
 <?php
 
-
-require_once __DIR__ . '/../models/Usuario.php';
+require_once __DIR__ . '/../models/Usuarios.php';
 
 class UsuariosController
 {
@@ -35,7 +34,7 @@ class UsuariosController
     {
         $this->asegurarSesionAdmin();
 
-        $modelo = new Usuario($this->conn);
+        $modelo = new Usuarios($this->conn);
         $usuarios = $modelo->obtenerTodos();
 
         require __DIR__ . '/../views/usuarios/index.php';
@@ -45,8 +44,10 @@ class UsuariosController
     public function crear()
     {
         $this->asegurarSesionAdmin();
-        $modelo = new Usuario($this->conn);
+
+        $modelo = new Usuarios($this->conn);
         $rolesUsuarios = $modelo->obtenerRoles();
+
         require __DIR__ . '/../views/usuarios/crear.php';
     }
 
@@ -65,18 +66,23 @@ class UsuariosController
         $identificacion = trim($_POST['identificacion'] ?? '');
         $telefono       = trim($_POST['telefono'] ?? '');
         $password       = trim($_POST['clave'] ?? '');
-        $rol            = trim($_POST['rol'] ?? '');
+        $rolNombre      = trim($_POST['rol'] ?? '');      // ← nombre del rol
         $estado         = ($_POST['activo'] ?? '0') == '1' ? 'activo' : 'inactivo';
 
-        if ($nombre === '' || $correo === '' || $password === '' || $rol === '') {
+        if ($nombre === '' || $correo === '' || $password === '' || $rolNombre === '') {
             header("Location: index.php?c=usuarios&a=crear");
             exit;
         }
 
-        $passwordHash = $password; 
+        $modelo = new Usuarios($this->conn);
 
-        $modelo = new Usuario($this->conn);
-        $modelo->crear($nombre, $correo, $identificacion, $telefono, $passwordHash, $estado, $rol);
+        // Convertir nombre → id_rol
+        $idRol = $modelo->obtenerIdRolPorNombre($rolNombre);
+
+        $passwordHash = $password;
+
+        // Guardar usuario con id_rol (int)
+        $modelo->crear($nombre, $correo, $identificacion, $telefono, $passwordHash, $estado, $idRol);
 
         header("Location: index.php?c=usuarios&a=index");
         exit;
@@ -93,8 +99,9 @@ class UsuariosController
             exit;
         }
 
-        $modelo = new Usuario($this->conn);
-        $usuario = $modelo->obtenerPorId($id);
+        $modelo = new Usuarios($this->conn);
+
+        $usuario       = $modelo->obtenerPorId($id);
         $rolesUsuarios = $modelo->obtenerRoles();
 
         require __DIR__ . '/../views/usuarios/editar.php';
@@ -116,20 +123,23 @@ class UsuariosController
         $identificacion = trim($_POST['identificacion'] ?? '');
         $telefono       = trim($_POST['telefono'] ?? '');
         $estado         = ($_POST['activo'] ?? '0') == '1' ? 'activo' : 'inactivo';
-        $rol            = trim($_POST['rol'] ?? '');
+        $rolNombre      = trim($_POST['rol'] ?? '');      // ← nombre del rol
         $password       = trim($_POST['clave'] ?? '');
 
-        $modelo = new Usuario($this->conn);
+        $modelo = new Usuarios($this->conn);
+
+        // Convertir nombre → id_rol ANTES de actualizar
+        $idRol = $modelo->obtenerIdRolPorNombre($rolNombre);
 
         if ($password === '') {
-            $modelo->actualizarSinClave($id, $nombre, $correo, $identificacion, $telefono, $estado, $rol);
+            // Actualizar sin cambiar la contraseña
+            $modelo->actualizarSinClave($id, $nombre, $correo, $identificacion, $telefono, $estado, $idRol);
         } else {
-            $modelo->actualizar($id, $nombre, $correo, $identificacion, $telefono, $password, $estado, $rol);
+            // Actualizar incluyendo nueva clave
+            $modelo->actualizar($id, $nombre, $correo, $identificacion, $telefono, $password, $estado, $idRol);
         }
 
         header("Location: index.php?c=usuarios&a=index");
         exit;
     }
-
-    //
 }

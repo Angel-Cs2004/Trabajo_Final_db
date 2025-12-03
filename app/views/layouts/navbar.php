@@ -102,7 +102,7 @@
             <div id="submenuNegocios" class="ml-4 mt-2 space-y-1 hidden">
                 <a href="index.php?c=negocio&a=listar"
                     class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Negocios</a>
-                <a href="#" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Perfil negocios</a>
+                <a href="index.php?c=negocio&a=perfil" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Mis negocios</a>
             </div>
         </div>
 
@@ -124,21 +124,33 @@
                 </svg>
             </button>
             <div id="submenuProductos" class="ml-4 mt-2 space-y-1 hidden">
-                <a href="#" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Productos</a>
-                <a href="#" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Categorías</a>
+                <a href="index.php?c=productoNegocio&a=listar" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Mis productos</a>
+                <a href="index.php?c=productoGeneral&a=listar" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Productos</a>
+                <a href="index.php?c=categorias&a=listar" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Categorías</a>
             </div>
         </div>
         
-        <!-- REPORTES (SIN SUBMENÚ) -->
+        <!-- REPORTES  -->
         <div class="px-4 mb-2">
-            <a href="index.php?c=reportes&a=index"
-            class="flex items-center px-4 py-3 hover:bg-green-700 rounded transition">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button class="w-full flex items-center justify-between px-4 py-3 hover:bg-green-700 rounded transition"
+                onclick="toggleSubmenu('submenuReportes', 'iconPReportes')">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 3h2l.4 2M7 13h10l3-8H6.4M7 13L5.4 5M7 13l-2 6m12-6l2 6m-6-6v6" />
+                    </svg>
+                    <span>Reportes</span>
+                </div>
+                <svg id="iconReportes" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 17v-6a2 2 0 012-2h8m-6 8h6M9 9h2m4 0h6M3 13h6m0 0H5m4 0v8"/>
+                        d="M19 9l-7 7-7-7" />
                 </svg>
-                <span>Reportes</span>
-            </a>
+            </button>
+            <div id="submenuReportes" class="ml-4 mt-2 space-y-1 hidden">
+                <a href="index.php?c=reporte&a=reporteGeneral" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Reportes generales</a>
+                <a href="index.php?c=reporte&a=reporteNegocio" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Reportes tienda</a>
+            </div>
         </div>
     </nav>
 
