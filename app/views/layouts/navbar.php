@@ -1,6 +1,6 @@
 <!-- Sidebar -->
 <div class="w-64 bg-green-800 text-white flex flex-col">
-
+<!-- _SESSION[""] -->
     <!-- Logo -->
     <div class="p-6 bg-green-900">
         <div class="flex items-center justify-center mb-2">
