@@ -371,6 +371,3 @@ BEGIN
 END $$
 
 DELIMITER ;
-
-
-// triggers al 
