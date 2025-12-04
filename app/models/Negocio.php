@@ -86,7 +86,7 @@ class Negocio
         }
 
         $stmt->bind_param(
-            'ssssssi',  
+            'ssssssii',  
             $nombre,
             $descripcion,
             $telefono,
