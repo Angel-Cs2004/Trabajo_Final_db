@@ -1,7 +1,8 @@
 <?php
 
 require_once __DIR__ . '/../models/ProductoNegocio.php';
-require_once __DIR__ . '/../Categoria.php';
+require_once __DIR__ . '/../models/Negocio.php';
+require_once __DIR__ . '/../models/Categoria.php';
 class ProductoNegocioController
 {
     private $conn;
