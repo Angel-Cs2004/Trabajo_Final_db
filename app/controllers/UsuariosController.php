@@ -122,7 +122,7 @@ class UsuariosController
         $correo         = trim($_POST['correo'] ?? '');
         $identificacion = trim($_POST['identificacion'] ?? '');
         $telefono       = trim($_POST['telefono'] ?? '');
-        $estado         = ($_POST['activo'] ?? '0') == '1' ? 'activo' : 'inactivo';
+        $estado = ($_POST['estado'] ?? 'inactivo') === 'activo' ? 'activo' : 'inactivo';
         $rolNombre      = trim($_POST['rol'] ?? '');      // ← nombre del rol
         $password       = trim($_POST['clave'] ?? '');
 

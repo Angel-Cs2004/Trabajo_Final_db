@@ -14,7 +14,7 @@ class ParametroImagen
     {
         $sql = "SELECT *
                 FROM parametros_imagenes
-                ORDER BY tipo ASC";
+                ORDER BY nombre ASC";
 
         $result = $this->conn->query($sql);
         return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];

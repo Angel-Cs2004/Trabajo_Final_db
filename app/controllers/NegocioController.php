@@ -69,21 +69,23 @@ class NegocioController
             exit;
         }
 
-        $nombre       = trim($_POST['nombre']);
-        $descripcion  = trim($_POST['descripcion']);
-        $telefono     = trim($_POST['telefono']);
-        $estado       = $_POST['estado_disponibilidad'] ?? 'cerrado';
-        $imagen_logo  = null;
+        $nombre       = trim($_POST['nombre'] ?? '');
+        $descripcion  = trim($_POST['descripcion'] ?? '');
+        $estado       = $_POST['estado'] ?? 'activo';          // <select name="estado">
+        $horaApertura = $_POST['hora_apertura'] ?? '';         // <input type="time" name="hora_apertura">
+        $horaCierre   = $_POST['hora_cierre'] ?? '';           // <input type="time" name="hora_cierre">
+        $imagen_logo  = null;                                  // luego puedes meter upload
+        $activo       = 1;
 
         // ADMIN: puede asignar propietario
         if ($_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'super_admin') {
             $idPropietario = intval($_POST['id_propietario'] ?? 0);
         } else {
-            // PROPIETARIO: se auto-asigna
             $idPropietario = $_SESSION['id_usuario'];
         }
 
-        if ($nombre === '' || $telefono === '' || $idPropietario <= 0) {
+        // Validación mínima
+        if ($nombre === '' || $horaApertura === '' || $horaCierre === '' || $idPropietario <= 0) {
             header("Location: index.php?c=negocio&a=crear");
             exit;
         }
@@ -93,16 +95,18 @@ class NegocioController
         $modeloNegocio->crear(
             $nombre,
             $descripcion,
-            $telefono,
             $imagen_logo,
             $estado,
-            1,
+            $horaApertura,
+            $horaCierre,
+            $activo,
             $idPropietario
         );
 
         header("Location: index.php?c=negocio&a=listar");
         exit;
     }
+
 
     public function editar()
     {
@@ -149,12 +153,13 @@ class NegocioController
             exit;
         }
 
-        $id            = intval($_POST['id_negocio']);
-        $nombre        = trim($_POST['nombre']);
-        $descripcion   = trim($_POST['descripcion']);
-        $telefono      = trim($_POST['telefono']);
-        $estado        = $_POST['estado_disponibilidad'] ?? 'cerrado';
-        $activo        = isset($_POST['activo']) ? intval($_POST['activo']) : 1;
+        $id            = intval($_POST['id_negocio'] ?? 0);
+        $nombre        = trim($_POST['nombre'] ?? '');
+        $descripcion   = trim($_POST['descripcion'] ?? '');
+        $estado        = $_POST['estado'] ?? 'activo';
+        $horaApertura  = $_POST['hora_apertura'] ?? '';
+        $horaCierre    = $_POST['hora_cierre'] ?? '';
+        $activo        = isset($_POST['activo']) ? 1 : 0;
 
         $modeloNegocio = new Negocio($this->conn);
         $negocioActual = $modeloNegocio->obtenerPorId($id);
@@ -164,21 +169,23 @@ class NegocioController
             exit;
         }
 
+        // quién será el propietario luego de actualizar
         if ($_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'super_admin') {
-            $idPropietario = intval($_POST['id_propietario']);
+            $idPropietario = intval($_POST['id_propietario'] ?? $negocioActual['id_propietario']);
         } else {
             $idPropietario = $negocioActual['id_propietario'];
         }
 
-        $imagen_logo = $negocioActual['imagen_logo'];
+        $imagen_logo = $negocioActual['imagen_logo']; // por ahora no cambiamos logo
 
         $modeloNegocio->actualizar(
             $id,
             $nombre,
             $descripcion,
-            $telefono,
             $imagen_logo,
             $estado,
+            $horaApertura,
+            $horaCierre,
             $activo,
             $idPropietario
         );
@@ -187,6 +194,7 @@ class NegocioController
         exit;
     }
 
+
     public function perfil()
     {
         $this->asegurarSesion();
@@ -194,5 +202,10 @@ class NegocioController
         $modeloNegocio = new Negocio($this->conn);
 
         require __DIR__ . '/../views/negocios/perfil.php';
+    }
+        public function listar()
+    {
+        // Puedes simplemente reutilizar index()
+        $this->index();
     }
 }

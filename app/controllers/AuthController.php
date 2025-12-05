@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../models/Usuarios.php';
+require_once __DIR__ . '/../models/Login.php';
 
 class AuthController
 {
@@ -25,7 +25,7 @@ class AuthController
                 $mensajeError = "Debes completar correo y contraseña.";
             } else {
 
-                $modeloUsuario = new Usuarios($this->conn);
+                $modeloUsuario = new Usuario($this->conn);
                 $usuarioBD = $modeloUsuario->obtenerPorCorreo($correo);
 
                 if (!$usuarioBD) {
@@ -38,6 +38,10 @@ class AuthController
                         $_SESSION['nombre']     = $usuarioBD['nombre'];
                         $_SESSION['correo']     = $usuarioBD['correo'];
                         $_SESSION['rol']        = $usuarioBD['rol'];
+                        $estructuraPermisos = $modeloUsuario->obtenerPermisosPorUsuario($usuarioBD['id_usuario']);
+
+                        // Guardarla en sesión
+                        $_SESSION['usuario_auth'] = $estructuraPermisos;
 
                         if ($_SESSION['rol'] === "admin" || $_SESSION['rol'] === "super_admin") {
                             header("Location: index.php?c=home&a=dashboardAdmin");

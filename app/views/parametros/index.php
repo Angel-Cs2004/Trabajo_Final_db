@@ -50,7 +50,6 @@ require __DIR__ . '/../layouts/header.php';
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Etiqueta</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ancho(px)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Alto(px)</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tamaño(KB)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Formatos válidos</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
@@ -61,12 +60,11 @@ require __DIR__ . '/../layouts/header.php';
                     <?php if (!empty($parametros)): ?>
                         <?php foreach ($parametros as $p): ?>
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-3"><?= htmlspecialchars($p['tipo']) ?></td>
+                            <td class="px-6 py-3"><?= htmlspecialchars($p['nombre']) ?></td>
                             <td class="px-6 py-3"><?= htmlspecialchars($p['etiqueta']) ?></td>
                             <td class="px-6 py-3"><?= htmlspecialchars($p['ancho_px']) ?></td>
                             <td class="px-6 py-3"><?= htmlspecialchars($p['alto_px']) ?></td>
-                            <td class="px-6 py-3"><?= htmlspecialchars($p['tamano_kb']) ?></td>
-                            <td class="px-6 py-3"><?= htmlspecialchars($p['categoria_admin']) ?></td>
+                            <td class="px-6 py-3"><?= htmlspecialchars($p['categoria']) ?></td>
                             <td class="px-6 py-3"><?= htmlspecialchars($p['formatos_validos']) ?></td>
 
                             <td class="px-6 py-3">

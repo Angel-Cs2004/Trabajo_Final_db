@@ -25,7 +25,23 @@ CREATE TABLE roles (
 CREATE TABLE permisos (
     id_permiso    INT AUTO_INCREMENT PRIMARY KEY,
     nombre        VARCHAR(150) NOT NULL,
-    tag           VARCHAR(255)
+    codigo       ENUM('CREATE','READ','UPDATE','DELETE') NOT NULL
+);
+CREATE TABLE tags (
+    id_tag   INT AUTO_INCREMENT PRIMARY KEY,
+    codigo   VARCHAR(50) NOT NULL UNIQUE, -- 'USUARIO','PRODUCTO','NEGOCIO',...
+    nombre   VARCHAR(100) NOT NULL,
+    aplica_a ENUM('general','usuario') NOT NULL DEFAULT 'general'
+);
+
+CREATE TABLE rol_tag_permiso (
+    id_rol     INT NOT NULL,
+    id_tag     INT NOT NULL,
+    id_permiso INT NOT NULL,
+    PRIMARY KEY (id_rol, id_tag, id_permiso),
+    FOREIGN KEY (id_rol)     REFERENCES roles(id_rol),
+    FOREIGN KEY (id_tag)     REFERENCES tags(id_tag),
+    FOREIGN KEY (id_permiso) REFERENCES permisos(id_permiso)
 );
 
 CREATE TABLE usuario_rol (
@@ -36,13 +52,13 @@ CREATE TABLE usuario_rol (
     FOREIGN KEY(id_rol)     REFERENCES roles(id_rol)
 );
 
-CREATE TABLE rol_permiso (
-    id_rol     INT NOT NULL,
-    id_permiso INT NOT NULL,
-    PRIMARY KEY(id_rol, id_permiso),
-    FOREIGN KEY(id_rol) REFERENCES roles(id_rol),
-    FOREIGN KEY(id_permiso) REFERENCES permisos(id_permiso)
-);
+-- CREATE TABLE rol_permiso (
+--     id_rol     INT NOT NULL,
+--     id_permiso INT NOT NULL,
+--     PRIMARY KEY(id_rol, id_permiso),
+--     FOREIGN KEY(id_rol) REFERENCES roles(id_rol),
+--     FOREIGN KEY(id_permiso) REFERENCES permisos(id_permiso)
+-- );
 
 -- EL ATRIBUTO DERIVADO DE DISONIBILIDAD SE  PONE EN MODELS NEGOCIO.PHP
 CREATE TABLE negocios (
@@ -103,6 +119,9 @@ CREATE TABLE parametros_imagenes (
     formatos_validos ENUM('jpg','png','webp','gif') NOT NULL
 );
 
+-- =========================================
+-- ROLES
+-- =========================================
 INSERT INTO roles (nombre, estado) VALUES
 ('super_admin',      'activo'),
 ('admin_negocio',    'activo'),
@@ -110,96 +129,172 @@ INSERT INTO roles (nombre, estado) VALUES
 ('invitado_reportes','activo');
 
 -- =========================================
-INSERT INTO permisos (nombre, tag) VALUES
--- USUARIOS
-('crear',        'usuario'),
-('editar',       'usuario'),
-('visualizar',   'usuario'),
+-- TAGS (módulos o áreas del sistema)
+-- =========================================
+INSERT INTO tags (codigo, nombre, aplica_a) VALUES
+('usuario',   'Gestión de usuarios',        'usuario'),
+('rol',       'Gestión de roles',           'general'),
+('categoria', 'Gestión de categorías',      'general'),
+('negocio',   'Gestión de negocios',        'general'),
+('producto',  'Gestión de productos',       'general'),
+('reporte',   'Visualización de reportes',  'general');
 
--- ROLES
-('crear',            'rol'),
-('editar',           'rol'),
-('visualizar',       'rol'),
+-- IDs esperados:
+-- 1: usuario, 2: rol, 3: categoria, 4: negocio, 5: producto, 6: reporte
 
--- CATEGORÍAS
-('crear',      'categoria'),
-('editar',     'categoria'),
-('visualizar', 'categoria'),
+-- =========================================
+-- PERMISOS (tipo de operación)
+-- =========================================
+INSERT INTO permisos (nombre, codigo) VALUES
+('crear',      'CREATE'),
+('visualizar', 'READ'),
+('editar',     'UPDATE');
+-- (dejamos 'DELETE' en el ENUM por si lo usas luego, pero no lo insertamos aún)
 
--- NEGOCIOS
-('crear',        'negocio'),
-('editar',       'negocio'),
-('visualizar',   'negocio'),
-
--- PRODUCTOS
-('crear',       'producto'),
-('editar',      'producto'),
-('visualizar',  'producto'),
-
--- REPORTES
-('visualizar',   'reporte');
+-- IDs esperados:
+-- 1: crear (CREATE), 2: visualizar (READ), 3: editar (UPDATE)
 
 -- =========================================
 -- USUARIOS
--- (uno con TODOS los permisos: Angel)
 -- =========================================
 INSERT INTO usuarios (nombre, correo, identificacion, telefono, password_hash, estado) VALUES
-('Angelo_gen', 'angel@gmail.com',      '00000001', '999999999', 'perro123', 'activo'),
-('Admin Negocios',    'admin_negocio@demo.com','00000002','988888888', 'admin123', 'activo'),
-('Operador Demo',     'operador@demo.com',    '00000003', '977777777', 'oper123',  'activo'),
-('Invitado Reportes', 'invitado@demo.com',    '00000004', '966666666', 'invitado123','activo');
-
+('Angelo_gen',       'angel@gmail.com',        '00000001', '999999999', 'perro123',    'activo'),
+('Admin Negocios',   'admin_negocio@demo.com', '00000002', '988888888', 'admin123',    'activo'),
+('Operador Demo',    'operador@demo.com',      '00000003', '977777777', 'oper123',     'activo'),
+('Invitado Reportes','invitado@demo.com',      '00000004', '966666666', 'invitado123', 'activo');
 
 -- =========================================
 -- USUARIO_ROL
 -- =========================================
 INSERT INTO usuario_rol (id_usuario, id_rol) VALUES
-(1, 1), -- Angel -> super_admin (TODOS los permisos)
+(1, 1), -- Angelo -> super_admin (TODOS los permisos)
 (2, 2), -- Admin Negocios -> admin_negocio
 (3, 3), -- Operador Demo  -> operador_negocio
 (4, 4); -- Invitado       -> invitado_reportes
 
-INSERT INTO rol_permiso (id_rol, id_permiso) VALUES
-(1, 1),(1, 2),(1, 3),
-(1, 4),(1, 5),(1, 6),
-(1, 7),(1, 8),(1, 9),
-(1,10),(1,11),(1,12),
-(1,13),(1,14),(1,15),
-(1,16);
+-- =========================================
+-- ROL_TAG_PERMISO
+-- (matriz de permisos por rol, tag y tipo de operación)
+-- =========================================
 
-INSERT INTO rol_permiso (id_rol, id_permiso) VALUES
-(2, 1),(2, 2),(2, 3),          -- usuarios
-(2, 7),(2, 8),(2, 9),          -- categorías
-(2,10),(2,11),(2,12),          -- negocios
-(2,13),(2,14),(2,15),          -- productos
-(2,16);                        -- ver reportes
+-- 1) SUPER_ADMIN: tiene TODOS los permisos que definiste en el diseño original
+--    (usuarios, roles, categorías, negocios, productos: crear/editar/visualizar
+--     + reportes: visualizar)
 
-INSERT INTO rol_permiso (id_rol, id_permiso) VALUES
-(3, 9),                        -- ver categorías
-(3,12),                        -- ver negocios
-(3,13),(3,14),(3,15),          -- productos
-(3,16);                        -- ver reportes
+INSERT INTO rol_tag_permiso (id_rol, id_tag, id_permiso) VALUES
+-- USUARIOS (tag 1): crear, editar, visualizar
+(1, 1, 1), -- CREATE usuario
+(1, 1, 3), -- UPDATE usuario
+(1, 1, 2), -- READ   usuario
 
--- 4) INVITADO_REPORTES: solo ver reportes
-INSERT INTO rol_permiso (id_rol, id_permiso) VALUES
-(4,16);
+-- ROLES (tag 2)
+(1, 2, 1), -- CREATE rol
+(1, 2, 3), -- UPDATE rol
+(1, 2, 2), -- READ   rol
 
+-- CATEGORÍAS (tag 3)
+(1, 3, 1), -- CREATE categoria
+(1, 3, 3), -- UPDATE categoria
+(1, 3, 2), -- READ   categoria
+
+-- NEGOCIOS (tag 4)
+(1, 4, 1), -- CREATE negocio
+(1, 4, 3), -- UPDATE negocio
+(1, 4, 2), -- READ   negocio
+
+-- PRODUCTOS (tag 5)
+(1, 5, 1), -- CREATE producto
+(1, 5, 3), -- UPDATE producto
+(1, 5, 2), -- READ   producto
+
+-- REPORTES (tag 6): solo visualizar
+(1, 6, 2); -- READ reporte
+
+
+-- 2) ADMIN_NEGOCIO:
+--    - Puede gestionar usuarios, categorías, negocios y productos (crear/editar/visualizar)
+--    - NO puede gestionar roles
+--    - Puede visualizar reportes
+
+INSERT INTO rol_tag_permiso (id_rol, id_tag, id_permiso) VALUES
+-- USUARIOS (1)
+(2, 1, 1),
+(2, 1, 3),
+(2, 1, 2),
+
+-- CATEGORÍAS (3)
+(2, 3, 1),
+(2, 3, 3),
+(2, 3, 2),
+
+-- NEGOCIOS (4)
+(2, 4, 1),
+(2, 4, 3),
+(2, 4, 2),
+
+-- PRODUCTOS (5)
+(2, 5, 1),
+(2, 5, 3),
+(2, 5, 2),
+
+-- REPORTES (6): solo visualizar
+(2, 6, 2);
+
+
+-- 3) OPERADOR_NEGOCIO:
+--    - Categorías: solo visualizar
+--    - Negocios: solo visualizar
+--    - Productos: crear, editar y visualizar
+--    - Reportes: visualizar
+
+INSERT INTO rol_tag_permiso (id_rol, id_tag, id_permiso) VALUES
+-- CATEGORÍAS (3): solo READ
+(3, 3, 2),
+
+-- NEGOCIOS (4): solo READ
+(3, 4, 2),
+
+-- PRODUCTOS (5): CREATE, UPDATE, READ
+(3, 5, 1),
+(3, 5, 3),
+(3, 5, 2),
+
+-- REPORTES (6): solo READ
+(3, 6, 2);
+
+
+-- 4) INVITADO_REPORTES:
+--    - Solo puede visualizar reportes
+
+INSERT INTO rol_tag_permiso (id_rol, id_tag, id_permiso) VALUES
+(4, 6, 2);
+
+
+-- =========================================
+-- NEGOCIOS
+-- =========================================
 INSERT INTO negocios (nombre, descripcion, estado, imagen_logo, hora_apertura, hora_cierre, id_propietario, activo) VALUES
 ('Restaurante Doña Pacha', 'Comida criolla y menú diario', 'activo', NULL, '09:00:00', '16:00:00', 2, 1),
 ('Pollería El Buen Sabor', 'Pollos a la brasa y parrillas', 'activo', NULL, '12:00:00', '23:00:00', 2, 1),
 ('Cevichería El Marino',  'Ceviches y mariscos frescos',   'activo', NULL, '10:00:00', '18:00:00', 3, 1);
 
 
+-- =========================================
+-- HORARIOS_NEGOCIO (plantilla genérica)
+-- =========================================
 INSERT INTO horarios_negocio (dia_semana, estado, hora_apertura, hora_cierre, inactivo) VALUES
-('lunes',    'activo', '09:00:00', '16:00:00', 0),
-('martes',   'activo', '09:00:00', '16:00:00', 0),
-('miercoles','activo', '09:00:00', '16:00:00', 0),
-('jueves',   'activo', '09:00:00', '16:00:00', 0),
-('viernes',  'activo', '09:00:00', '16:00:00', 0),
-('sabado',   'activo', '10:00:00', '15:00:00', 0),
+('lunes',    'activo',   '09:00:00', '16:00:00', 0),
+('martes',   'activo',   '09:00:00', '16:00:00', 0),
+('miercoles','activo',   '09:00:00', '16:00:00', 0),
+('jueves',   'activo',   '09:00:00', '16:00:00', 0),
+('viernes',  'activo',   '09:00:00', '16:00:00', 0),
+('sabado',   'activo',   '10:00:00', '15:00:00', 0),
 ('domingo',  'inactivo', '00:00:00', '00:00:00', 1);
 
 
+-- =========================================
+-- CATEGORÍAS
+-- =========================================
 INSERT INTO categorias (nombre, descripcion, estado, activo) VALUES
 ('Entradas',         'Platos ligeros para empezar', 'activo', 1),
 ('Platos de fondo',  'Platos principales',          'activo', 1),
@@ -207,6 +302,9 @@ INSERT INTO categorias (nombre, descripcion, estado, activo) VALUES
 ('Postres',          'Dulces y postres',            'activo', 1);
 
 
+-- =========================================
+-- PRODUCTOS
+-- =========================================
 INSERT INTO productos (nombre, precio, url_imagen, estado, activo, id_categoria, id_negocio) VALUES
 ('Ceviche clásico',  25.00, NULL, 'activo', 1, 1, 3),
 ('Lomo saltado',     28.50, NULL, 'activo', 1, 2, 1),
@@ -214,11 +312,13 @@ INSERT INTO productos (nombre, precio, url_imagen, estado, activo, id_categoria,
 ('Mazamorra morada',  6.50, NULL, 'activo', 1, 4, 1);
 
 
+-- =========================================
+-- PARÁMETROS DE IMÁGENES
+-- =========================================
 INSERT INTO parametros_imagenes (nombre, etiqueta, alto_px, ancho_px, categoria, formatos_validos) VALUES
 ('Logo Negocio',   'logo_negocio',   300, 300, 'negocios', 'png'),
 ('Foto Producto',  'foto_producto',  600, 600, 'productos','jpg'),
 ('Avatar Usuario', 'avatar_usuario', 200, 200, 'usuarios', 'jpg');
-
 
 
 -- =================================================

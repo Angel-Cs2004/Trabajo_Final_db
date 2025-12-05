@@ -200,24 +200,6 @@ switch ($c) {
         }
         break;
 
-    case 'negocio':
-        $controller = new NegocioController($conn);
-
-        if ($a === 'listar') {
-            $controller->listar();
-        } elseif ($a === 'crear') {
-            $controller->crear();
-        } elseif ($a === 'guardar') {
-            $controller->guardar();
-        } elseif ($a === 'editar') {
-            $controller->editar();
-        } elseif ($a === 'actualizar') {
-            $controller->actualizar();
-        } else {
-            header('Location: index.php?c=negocio&a=listar');
-            exit;
-        }
-        break;
 
     case 'reporte':
         $controller = new ReportesController($conn);

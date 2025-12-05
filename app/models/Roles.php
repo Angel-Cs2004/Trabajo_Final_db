@@ -14,8 +14,7 @@ class Role
     {
         $sql = "SELECT 
                     id_rol,
-                    nombre,
-                    descripcion
+                    nombre
                 FROM roles
                 ORDER BY nombre ASC";
 
@@ -29,7 +28,6 @@ class Role
         $sql = "SELECT 
                     id_rol,
                     nombre,
-                    descripcion
                 FROM roles
                 WHERE id_rol = ?
                 LIMIT 1";

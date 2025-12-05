@@ -15,7 +15,7 @@ class Negocio
                 FROM negocios n
                 INNER JOIN usuarios u ON n.id_propietario = u.id_usuario
                 WHERE n.activo = 1
-                ORDER BY n.fecha_creacion DESC";
+                ORDER BY n.nombre DESC";
 
         $result = $this->conn->query($sql);
         if (!$result) {
@@ -66,108 +66,115 @@ class Negocio
         return $row ?: null;
     }
 
-    public function crear(
+   public function crear(
         string $nombre,
         string $descripcion,
-        string $telefono,
         ?string $imagen_logo,
-        string $estado_disponibilidad,
+        string $estado,
+        string $hora_apertura,
+        string $hora_cierre,
         int $activo,
         int $idPropietario
     ): bool {
 
         $sql = "INSERT INTO negocios 
-                (nombre, descripcion, telefono, imagen_logo, estado_disponibilidad, activo, id_propietario)
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+                (nombre, descripcion, estado, imagen_logo, hora_apertura, hora_cierre, activo, id_propietario)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) {
             return false;
         }
 
+        // s = string, i = int
         $stmt->bind_param(
-            'sssssis',
+            'ssssssii',
             $nombre,
             $descripcion,
-            $telefono,
-            $imagen_logo,
-            $estado_disponibilidad,
-            $activo,
+            $estado,        // 'activo' / 'inactivo'
+            $imagen_logo,   // puede ser null
+            $hora_apertura, // '09:00:00'
+            $hora_cierre,   // '18:00:00'
+            $activo,        // 1 o 0
             $idPropietario
         );
 
         return $stmt->execute();
     }
 
-    public function actualizar(
-        int $idNegocio,
-        string $nombre,
-        string $descripcion,
-        string $telefono,
-        ?string $imagen_logo,
-        string $estado_disponibilidad,
-        int $activo,
-        ?int $idPropietario = null
-    ): bool {
 
-        if ($idPropietario !== null) {
+public function actualizar(
+    int $idNegocio,
+    string $nombre,
+    string $descripcion,
+    ?string $imagen_logo,
+    string $estado,
+    string $hora_apertura,
+    string $hora_cierre,
+    int $activo,
+    ?int $idPropietario = null
+): bool {
 
-            $sql = "UPDATE negocios
-                    SET nombre = ?,
-                        descripcion = ?,
-                        telefono = ?,       
-                        imagen_logo = ?,
-                        estado_disponibilidad = ?,
-                        activo = ?,
-                        id_propietario = ?
-                    WHERE id_negocio = ?";
+    if ($idPropietario !== null) {
+        // Admin / super_admin puede cambiar propietario
+        $sql = "UPDATE negocios
+                SET nombre = ?,
+                    descripcion = ?,
+                    estado = ?,
+                    imagen_logo = ?,
+                    hora_apertura = ?,
+                    hora_cierre = ?,
+                    activo = ?,
+                    id_propietario = ?
+                WHERE id_negocio = ?";
 
-            $stmt = $this->conn->prepare($sql);
-            if (!$stmt) return false;
+        $stmt = $this->conn->prepare($sql);
+        if (!$stmt) return false;
 
-            
-            $stmt->bind_param(
-                'sssssiii',
-                $nombre,                
-                $descripcion,           
-                $telefono,              
-                $imagen_logo,           
-                $estado_disponibilidad, 
-                $activo,                
-                $idPropietario,         
-                $idNegocio              
-            );
+        $stmt->bind_param(
+            'ssssssiii',
+            $nombre,
+            $descripcion,
+            $estado,
+            $imagen_logo,
+            $hora_apertura,
+            $hora_cierre,
+            $activo,
+            $idPropietario,
+            $idNegocio
+        );
 
-        } else {
+    } else {
+        // Propietario normal: no cambia id_propietario
+        $sql = "UPDATE negocios
+                SET nombre = ?,
+                    descripcion = ?,
+                    estado = ?,
+                    imagen_logo = ?,
+                    hora_apertura = ?,
+                    hora_cierre = ?,
+                    activo = ?
+                WHERE id_negocio = ?";
 
-            
-            $sql = "UPDATE negocios
-                    SET nombre = ?,
-                        descripcion = ?,
-                        telefono = ?,       
-                        imagen_logo = ?,
-                        estado_disponibilidad = ?,
-                        activo = ?
-                    WHERE id_negocio = ?";
+        $stmt = $this->conn->prepare($sql);
+        if (!$stmt) return false;
 
-            $stmt = $this->conn->prepare($sql);
-            if (!$stmt) return false;
-
-           
-            $stmt->bind_param(
-                'sssssii',
-                $nombre,                
-                $descripcion,           
-                $telefono,              
-                $imagen_logo,           
-                $estado_disponibilidad, 
-                $activo,                
-                $idNegocio              
-            );
-        }
-
-        return $stmt->execute();
+        $stmt->bind_param(
+            'ssssssii',
+            $nombre,
+            $descripcion,
+            $estado,
+            $imagen_logo,
+            $hora_apertura,
+            $hora_cierre,
+            $activo,
+            $idNegocio
+        );
     }
+
+    return $stmt->execute();
+}
+
 
 
 }
