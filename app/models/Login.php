@@ -139,4 +139,28 @@ class Usuario
 
         return $usuario;
     }
+
+    /**
+     * Actualiza el hash de contraseña de un usuario
+     * Se usa para migrar contraseñas planas a hasheadas
+     * 
+     * @param int $idUsuario ID del usuario
+     * @param string $nuevoHash Hash de la contraseña
+     * @return bool True si se actualizó correctamente
+     */
+    public function actualizarPasswordHash(int $idUsuario, string $nuevoHash): bool
+    {
+        $sql = "UPDATE usuarios SET password_hash = ? WHERE id_usuario = ?";
+        $stmt = $this->conn->prepare($sql);
+        
+        if (!$stmt) {
+            return false;
+        }
+
+        $stmt->bind_param('si', $nuevoHash, $idUsuario);
+        $resultado = $stmt->execute();
+        $stmt->close();
+
+        return $resultado;
+    }
 }
