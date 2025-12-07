@@ -8,7 +8,8 @@ require __DIR__ . '/../../layouts/header.php';
     <div class="bg-white w-full max-w-5xl mx-auto rounded-lg shadow-lg p-8">
 
         <h3 class="text-xl font-semibold mb-6">Crear producto</h3>
-
+        <!-- buenos creo que hay que corregir este form con la accion por 
+         productoNegocio ??  -->
         <form action="index.php?c=productoTienda&a=guardar" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         </form>

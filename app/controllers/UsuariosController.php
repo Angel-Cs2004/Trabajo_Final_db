@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/Usuarios.php';
+require_once __DIR__ . '/../helpers/PasswordHelper.php';
 
 class UsuariosController
 {
@@ -79,7 +80,8 @@ class UsuariosController
         // Convertir nombre → id_rol
         $idRol = $modelo->obtenerIdRolPorNombre($rolNombre);
 
-        $passwordHash = $password;
+        // HASHEAR la contraseña para nuevos usuarios
+        $passwordHash = PasswordHelper::hash($password);
 
         // Guardar usuario con id_rol (int)
         $modelo->crear($nombre, $correo, $identificacion, $telefono, $passwordHash, $estado, $idRol);
@@ -122,7 +124,7 @@ class UsuariosController
         $correo         = trim($_POST['correo'] ?? '');
         $identificacion = trim($_POST['identificacion'] ?? '');
         $telefono       = trim($_POST['telefono'] ?? '');
-        $estado         = ($_POST['activo'] ?? '0') == '1' ? 'activo' : 'inactivo';
+        $estado = ($_POST['estado'] ?? 'inactivo') === 'activo' ? 'activo' : 'inactivo';
         $rolNombre      = trim($_POST['rol'] ?? '');      // ← nombre del rol
         $password       = trim($_POST['clave'] ?? '');
 
@@ -135,8 +137,10 @@ class UsuariosController
             // Actualizar sin cambiar la contraseña
             $modelo->actualizarSinClave($id, $nombre, $correo, $identificacion, $telefono, $estado, $idRol);
         } else {
-            // Actualizar incluyendo nueva clave
-            $modelo->actualizar($id, $nombre, $correo, $identificacion, $telefono, $password, $estado, $idRol);
+            // HASHEAR la nueva contraseña
+            $passwordHash = PasswordHelper::hash($password);
+            // Actualizar incluyendo nueva clave hasheada
+            $modelo->actualizar($id, $nombre, $correo, $identificacion, $telefono, $passwordHash, $estado, $idRol);
         }
 
         header("Location: index.php?c=usuarios&a=index");

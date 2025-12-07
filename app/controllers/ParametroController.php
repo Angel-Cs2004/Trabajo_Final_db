@@ -23,7 +23,8 @@ class ParametrosController
             exit;
         }
 
-        if ($_SESSION['rol'] !== 'admin' && $_SESSION['rol'] !== 'super_admin') {
+        // Ahora tus roles son: super_admin, admin_negocio, operador_negocio, invitado_reportes
+        if ($_SESSION['rol'] !== 'admin_negocio' && $_SESSION['rol'] !== 'super_admin') {
             header("Location: index.php?c=home&a=dashboardProveedor");
             exit;
         }
@@ -57,22 +58,23 @@ class ParametrosController
             exit;
         }
 
-        $etiqueta   = trim($_POST['etiqueta'] ?? '');
-        $tipo       = trim($_POST['tipo'] ?? '');
-        $ancho      = intval($_POST['ancho_px'] ?? 0);
-        $alto       = intval($_POST['alto_px'] ?? 0);
-        $tamano     = intval($_POST['tamano_kb'] ?? 0);
-        $categoria  = trim($_POST['categoria_admin'] ?? '');
-        $formatos   = trim($_POST['formatos_validos'] ?? '');
-        $activo     = ($_POST['activo'] ?? '0') == '1' ? 1 : 0;
+        // nombre es opcional
+        $nombre    = trim($_POST['nombre'] ?? '');
+        $etiqueta  = trim($_POST['etiqueta'] ?? '');
+        $ancho     = intval($_POST['ancho_px'] ?? 0);
+        $alto      = intval($_POST['alto_px'] ?? 0);
+        // en el form puedes llamarlo 'categoria' o 'categoria_admin'; dejo ambos por compatibilidad
+        $categoria = trim($_POST['categoria'] ?? ($_POST['categoria_admin'] ?? ''));
+        $formatos  = trim($_POST['formatos_validos'] ?? '');
 
-        if ($etiqueta === '' || $tipo === '' || $ancho <= 0 || $alto <= 0 || $tamano <= 0 || $categoria === '') {
+        // Validación mínima
+        if ($etiqueta === '' || $ancho <= 0 || $alto <= 0 || $categoria === '' || $formatos === '') {
             header("Location: index.php?c=parametros&a=crear");
             exit;
         }
 
         $modelo = new ParametroImagen($this->conn);
-        $modelo->crear($etiqueta, $tipo, $ancho, $alto, $tamano, $categoria, $formatos, $activo);
+        $modelo->crear($nombre, $etiqueta, $ancho, $alto, $categoria, $formatos);
 
         header("Location: index.php?c=parametros&a=index");
         exit;
@@ -92,6 +94,11 @@ class ParametrosController
         $modelo = new ParametroImagen($this->conn);
         $param = $modelo->obtenerPorId($id);
 
+        if (!$param) {
+            header("Location: index.php?c=parametros&a=index");
+            exit;
+        }
+
         require __DIR__ . '/../views/parametros/editar.php';
     }
 
@@ -105,15 +112,13 @@ class ParametrosController
             exit;
         }
 
-        $id         = intval($_POST['id_parametro_imagen'] ?? 0);
-        $etiqueta   = trim($_POST['etiqueta']);
-        $tipo       = trim($_POST['tipo']);
-        $ancho      = intval($_POST['ancho_px']);
-        $alto       = intval($_POST['alto_px']);
-        $tamano     = intval($_POST['tamano_kb']);
-        $categoria  = trim($_POST['categoria_admin']);
-        $formatos   = trim($_POST['formatos_validos']);
-        $activo     = ($_POST['activo'] ?? '0') == '1' ? 1 : 0;
+        $id        = intval($_POST['id_parametro_imagen'] ?? 0);
+        $nombre    = trim($_POST['nombre'] ?? '');
+        $etiqueta  = trim($_POST['etiqueta'] ?? '');
+        $ancho     = intval($_POST['ancho_px'] ?? 0);
+        $alto      = intval($_POST['alto_px'] ?? 0);
+        $categoria = trim($_POST['categoria'] ?? ($_POST['categoria_admin'] ?? ''));
+        $formatos  = trim($_POST['formatos_validos'] ?? '');
 
         if ($id <= 0) {
             header("Location: index.php?c=parametros&a=index");
@@ -121,7 +126,7 @@ class ParametrosController
         }
 
         $modelo = new ParametroImagen($this->conn);
-        $modelo->actualizar($id, $etiqueta, $tipo, $ancho, $alto, $tamano, $categoria, $formatos, $activo);
+        $modelo->actualizar($id, $nombre, $etiqueta, $ancho, $alto, $categoria, $formatos);
 
         header("Location: index.php?c=parametros&a=index");
         exit;

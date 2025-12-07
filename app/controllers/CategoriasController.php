@@ -5,16 +5,19 @@ require_once __DIR__ . '/../models/Categoria.php';
 class CategoriasController
 {
     private mysqli $conn;
-    private Categoria $categoriaModel;
+
 
     public function __construct(mysqli $conn)
     {
         $this->conn = $conn;
-        $this->categoriaModel = new Categoria($conn);
+    }
 
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+    public function listar()
+    {
+        $categoriaModel = new Categoria($this->conn);
+        $categorias = $categoriaModel->obtenerTodas();
+
+        require __DIR__ . '/../views/categorias/index.php';
     }
 
     public function listar(): void
@@ -23,55 +26,89 @@ class CategoriasController
         require __DIR__ . '/../views/categoria/index.php';
     }
 
-    public function crear(): void
+    public function guardar()
     {
-        require __DIR__ . '/../views/categoria/crear.php';
-    }
-
-    public function guardar(): void
-    {
-        $nombre = trim($_POST['nombre'] ?? '');
-        $descripcion = trim($_POST['descripcion'] ?? '');
-        $activo = isset($_POST['activo']) ? 1 : 0;
-
-        if ($nombre !== '') {
-            $this->categoriaModel->crear($nombre, $descripcion, $activo);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header("Location: index.php?c=categorias&a=crear");
+            exit;
         }
 
-        header('Location: index.php?c=categorias&a=listar');
+        $nombre      = trim($_POST['nombre'] ?? '');
+        $descripcion = trim($_POST['descripcion'] ?? '');
+        // por defecto las creamos 'activo'
+        $estado      = $_POST['estado'] ?? 'activo';
+
+        $categoriaModel = new Categoria($this->conn);
+        $categoriaModel->crearCategoria($nombre, $descripcion, $estado);
+
+        header("Location: index.php?c=categorias&a=listar");
         exit;
     }
 
-    // (OPCIONAL) editar / actualizar:
-    public function editar(): void
+    public function editar()
     {
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id <= 0) {
-            header('Location: index.php?c=categorias&a=listar');
+        $id_categoria = $_GET['id_categoria'] ?? null;
+        if (!$id_categoria) {
+            header("Location: index.php?c=categorias&a=listar");
             exit;
         }
 
-        $categoria = $this->categoriaModel->obtenerPorId($id);
+        $categoriaModel = new Categoria($this->conn);
+        $categoria = $categoriaModel->obtenerPorId((int)$id_categoria);
+
         if (!$categoria) {
-            header('Location: index.php?c=categorias&a=listar');
+            header("Location: index.php?c=categorias&a=listar");
             exit;
         }
 
-        require __DIR__ . '/../views/categoria/editar.php';
+        require __DIR__ . '/../views/categorias/editar.php';
     }
 
-    public function actualizar(): void
+    public function actualizar()
     {
-        $id = isset($_POST['id_categoria']) ? (int) $_POST['id_categoria'] : 0;
-        $nombre = trim($_POST['nombre'] ?? '');
-        $descripcion = trim($_POST['descripcion'] ?? '');
-        $activo = isset($_POST['activo']) ? 1 : 0;
-
-        if ($id > 0 && $nombre !== '') {
-            $this->categoriaModel->actualizar($id, $nombre, $descripcion, $activo);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header("Location: index.php?c=categorias&a=listar");
+            exit;
         }
 
-        header('Location: index.php?c=categorias&a=listar');
+        $id_categoria = (int) ($_POST['id_categoria'] ?? 0);
+        $nombre       = trim($_POST['nombre'] ?? '');
+        $descripcion  = trim($_POST['descripcion'] ?? '');
+        $estado       = $_POST['estado'] ?? 'activo';
+
+        $categoriaModel = new Categoria($this->conn);
+        $categoriaModel->editarCategoria(
+            $id_categoria,
+            $nombre,
+            $descripcion,
+            $estado
+        );
+
+        header("Location: index.php?c=categorias&a=listar");
+        exit;
+    }
+
+    public function desactivar()
+    {
+        $id_categoria = $_GET['id_categoria'] ?? null;
+        if ($id_categoria) {
+            $categoriaModel = new Categoria($this->conn);
+            $categoriaModel->desactivarCategoria((int)$id_categoria);
+        }
+
+        header("Location: index.php?c=categorias&a=listar");
+        exit;
+    }
+
+    public function eliminar()
+    {
+        $id_categoria = $_GET['id_categoria'] ?? null;
+        if ($id_categoria) {
+            $categoriaModel = new Categoria($this->conn);
+            $categoriaModel->eliminarCategoria((int)$id_categoria);
+        }
+
+        header("Location: index.php?c=categorias&a=listar");
         exit;
     }
 }
