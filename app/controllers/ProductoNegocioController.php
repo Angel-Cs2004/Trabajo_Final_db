@@ -3,31 +3,44 @@
 require_once __DIR__ . '/../models/ProductoNegocio.php';
 require_once __DIR__ . '/../models/Negocio.php';
 require_once __DIR__ . '/../models/Categoria.php';
+
 class ProductoNegocioController
 {
-    private $conn;
+    private mysqli $conn;
 
-    public function __construct($conn)
+    public function __construct(mysqli $conn)
     {
         $this->conn = $conn;
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['id_usuario'])) {
+            header("Location: index.php?c=auth&a=login");
+            exit;
+        }
     }
 
     public function listar()
     {
-        //vamos a crear un objeto de la clase ProductoNegocio
-        //y llamar al metodo obtenerTodos   
-        $productoNegocioModel = new ProductoNegocio($this->conn);
-        $productos = $productoNegocioModel->obtenerTodos($_SESSION['id_usuario']);
+        $idUsuario = (int)($_SESSION['id_usuario'] ?? 0);
+        if ($idUsuario <= 0) {
+            header("Location: index.php?c=auth&a=login");
+            exit;
+        }
 
-        
+        $productoNegocioModel = new ProductoNegocio($this->conn);
+
+        // obtenerTodos ahora interpreta el parámetro como id_usuario propietario
+        $productos = $productoNegocioModel->obtenerTodos($idUsuario);
+
         require __DIR__ . '/../views/productos/Negocio/index.php';
     }
-
 
     public function crear()
     {
         $categoriaModel = new Categoria($this->conn);
-
         $categorias = $categoriaModel->obtenerTodasActivas();
 
         require __DIR__ . '/../views/productos/Negocio/crear.php';
@@ -44,26 +57,35 @@ class ProductoNegocioController
         $productoNegocioModel = new ProductoNegocio($this->conn);
         $negocioModel         = new Negocio($this->conn);
 
-        $idUsuario = $_SESSION['id_usuario'] ?? null;
-        if (!$idUsuario) {
+        $idUsuario = (int)($_SESSION['id_usuario'] ?? 0);
+        if ($idUsuario <= 0) {
             header("Location: index.php?c=auth&a=login");
             exit;
         }
 
-        $negocio = $negocioModel->obtenerPorPropietario($idUsuario); // SELECT * FROM negocios WHERE id_propietario = ? LIMIT 1
-        if (!$negocio) {
+        // obtenerPorPropietario ahora devuelve array de negocios
+        $negocios = $negocioModel->obtenerPorPropietario($idUsuario);
+        if (!$negocios || count($negocios) === 0) {
+            // si no tiene negocios, lo mandamos a crear uno
             header("Location: index.php?c=negocio&a=crear");
             exit;
         }
 
-        $idNegocio   = (int) $negocio['id_negocio'];
+        // Por ahora tomamos el primer negocio del propietario
+        $negocio   = $negocios[0];
+        $idNegocio = (int)$negocio['id_negocio'];
+
         $nombre      = trim($_POST['nombre'] ?? '');
-        $precio      = (float) ($_POST['precio'] ?? 0);
+        $precio      = (float)($_POST['precio'] ?? 0);
         $urlImagen   = trim($_POST['url_imagen'] ?? '');
         $estado      = $_POST['estado'] ?? 'activo';
-        $idCategoria = (int) ($_POST['id_categoria'] ?? 0);
+        $idCategoria = (int)($_POST['id_categoria'] ?? 0);
 
-        // (podrías validar aquí nombre/precio/categoría)
+        // Validación mínima
+        if ($nombre === '' || $precio <= 0 || $idCategoria <= 0) {
+            header("Location: index.php?c=productoNegocio&a=crear");
+            exit;
+        }
 
         $productoNegocioModel->crearProducto(
             $idNegocio,
@@ -77,8 +99,6 @@ class ProductoNegocioController
         header("Location: index.php?c=productoNegocio&a=listar");
         exit;
     }
-
-
 
     public function editar()
     {
@@ -112,12 +132,17 @@ class ProductoNegocioController
 
         $productoNegocio = new ProductoNegocio($this->conn);
 
-        $id_producto = (int) $_POST['id_producto'];
+        $id_producto = (int)($_POST['id_producto'] ?? 0);
         $nombre      = trim($_POST['nombre'] ?? '');
-        $precio      = (float) ($_POST['precio'] ?? 0);
+        $precio      = (float)($_POST['precio'] ?? 0);
         $urlImagen   = trim($_POST['url_imagen'] ?? '');
         $estado      = $_POST['estado'] ?? 'activo';
-        $idCategoria = (int) ($_POST['id_categoria'] ?? 0);
+        $idCategoria = (int)($_POST['id_categoria'] ?? 0);
+
+        if ($id_producto <= 0 || $nombre === '' || $precio <= 0 || $idCategoria <= 0) {
+            header("Location: index.php?c=productoNegocio&a=listar");
+            exit;
+        }
 
         $productoNegocio->editarProducto(
             $id_producto,
@@ -125,13 +150,12 @@ class ProductoNegocioController
             $precio,
             $urlImagen,
             $estado,
-            $idCategoria   // si decides permitir cambiar categoría también
+            $idCategoria
         );
 
         header("Location: index.php?c=productoNegocio&a=listar");
         exit;
     }
-
 
     public function eliminar()
     {

@@ -6,46 +6,46 @@ class Usuario
 
     public function __construct(mysqli $conn)
     {
-       
         $this->conn = $conn;
     }
 
+    /**
+     * Obtiene un usuario por correo usando el SP sp_obtener_usuario_login
+     */
     public function obtenerPorCorreo(string $correo): ?array
     {
-        //el ? es como un placeholder
         $sql = "CALL sp_obtener_usuario_login(?)";
-        //Cabe aclarar que "sp_obtener_usuario_login(?)"
-        // esta definida en bd_trabajo_final
-        
-        // Se prepara la sentencias con el metodo "prepare"
+
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) {
             return null; // error preparando
         }
 
-        // Inyecto el parametro  usuario en  sql = "?" 
         $stmt->bind_param('s', $correo);
         $stmt->execute();
 
-        // Obtener resultados
         $result = $stmt->get_result();
         if (!$result) {
+            $stmt->close();
+            // limpiar posibles resultados extra del SP
+            while ($this->conn->more_results() && $this->conn->next_result()) {;}
             return null;
         }
 
-        // TE DEVUELVE UN ARRAY ASOCIATIVO ==>
-        // $usuarios === $usuario["name de columna"] : valor
-        //$usuario['nombre']
-        //$usuario['correo']
-        //$usuario['password_hash']
         $usuario = $result->fetch_assoc();
-
         $stmt->close();
+
+        // limpiar el resto de resultados del SP
         while ($this->conn->more_results() && $this->conn->next_result()) {;}
 
         return $usuario ?: null;
     }
-        public function obtenerPermisosPorUsuario(int $idUsuario): ?array
+
+    /**
+     * Obtiene todos los permisos del usuario según rol_tag_permiso / tags / permisos
+     * y los arma en una estructura para guardar en $_SESSION['usuario_auth'].
+     */
+    public function obtenerPermisosPorUsuario(int $idUsuario): ?array
     {
         $sql = "
             SELECT 
@@ -53,8 +53,8 @@ class Usuario
                 u.nombre        AS nombre_usuario,
                 r.id_rol,
                 r.nombre        AS nombre_rol,
-                t.codigo        AS codigo_modulo,   -- 'USUARIO','NEGOCIO',...
-                p.codigo        AS codigo_permiso   -- 'CREATE','READ','UPDATE','DELETE'
+                t.modulos       AS nombre_modulo,   -- 'usuario','negocio',...
+                p.CRUD          AS codigo_permiso   -- 'CREATE','READ','UPDATE','DELETE'
             FROM usuarios u
             JOIN usuario_rol      ur  ON ur.id_usuario = u.id_usuario
             JOIN roles            r   ON r.id_rol      = ur.id_rol
@@ -64,7 +64,7 @@ class Usuario
             WHERE u.id_usuario = ?
               AND u.estado = 'activo'
               AND r.estado = 'activo'
-            ORDER BY r.id_rol, t.codigo, p.codigo
+            ORDER BY r.id_rol, t.modulos, p.CRUD
         ";
 
         $stmt = $this->conn->prepare($sql);
@@ -98,9 +98,11 @@ class Usuario
                 ];
             }
 
-            $nombreRol    = $row['nombre_rol'];
-            $codigoModulo = $row['codigo_modulo'];   
-            $codigoPerm   = $row['codigo_permiso'];  
+            $nombreRol    = $row['nombre_rol'];             // super_admin, admin_negocio...
+            // Paso el módulo a MAYÚSCULAS para mantener compatibilidad:
+            // 'usuario' -> 'USUARIO', 'negocio' -> 'NEGOCIO', etc.
+            $codigoModulo = strtoupper($row['nombre_modulo']);
+            $codigoPerm   = $row['codigo_permiso'];         // CREATE, READ, UPDATE, DELETE
 
             // acumular roles
             if (!in_array($nombreRol, $roles, true)) {
@@ -123,19 +125,23 @@ class Usuario
 
             switch ($codigoPerm) {
                 case 'CREATE':
-                    $permPorModulo[$codigoModulo]['C'] = true; break;
+                    $permPorModulo[$codigoModulo]['C'] = true;
+                    break;
                 case 'READ':
-                    $permPorModulo[$codigoModulo]['R'] = true; break;
+                    $permPorModulo[$codigoModulo]['R'] = true;
+                    break;
                 case 'UPDATE':
-                    $permPorModulo[$codigoModulo]['U'] = true; break;
+                    $permPorModulo[$codigoModulo]['U'] = true;
+                    break;
                 case 'DELETE':
-                    $permPorModulo[$codigoModulo]['D'] = true; break;
+                    $permPorModulo[$codigoModulo]['D'] = true;
+                    break;
             }
         }
 
-        $usuario['roles']            = $roles;
-        $usuario['modulos']          = $modulos;
-        $usuario['permisosPorModulo']= $permPorModulo;
+        $usuario['roles']             = $roles;
+        $usuario['modulos']           = $modulos;
+        $usuario['permisosPorModulo'] = $permPorModulo;
 
         return $usuario;
     }
@@ -143,10 +149,6 @@ class Usuario
     /**
      * Actualiza el hash de contraseña de un usuario
      * Se usa para migrar contraseñas planas a hasheadas
-     * 
-     * @param int $idUsuario ID del usuario
-     * @param string $nuevoHash Hash de la contraseña
-     * @return bool True si se actualizó correctamente
      */
     public function actualizarPasswordHash(int $idUsuario, string $nuevoHash): bool
     {

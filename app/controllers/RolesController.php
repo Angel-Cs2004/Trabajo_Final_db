@@ -11,25 +11,25 @@ class RolesController
         $this->conn = $conn;
     }
 
-    // Verifica sesión y privilegios de administrador
     private function asegurarSesionAdmin()
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
+        // Debe estar logueado
         if (!isset($_SESSION['id_usuario'])) {
             header("Location: index.php?c=auth&a=login");
             exit;
         }
 
-        if ($_SESSION['rol'] !== 'admin' && $_SESSION['rol'] !== 'super_admin') {
+        // Solo super_admin puede gestionar roles
+        if ($_SESSION['rol'] !== 'super_admin') {
             header("Location: index.php?c=home&a=dashboardProveedor");
             exit;
         }
     }
 
-    // Listar roles
     public function index()
     {
         $this->asegurarSesionAdmin();
@@ -40,14 +40,12 @@ class RolesController
         require __DIR__ . '/../views/roles/index.php';
     }
 
-    // Formulario de creación
     public function crear()
     {
         $this->asegurarSesionAdmin();
         require __DIR__ . '/../views/roles/crear.php';
     }
 
-    // Guardar rol
     public function guardar()
     {
         $this->asegurarSesionAdmin();
@@ -57,8 +55,7 @@ class RolesController
             exit;
         }
 
-        $nombre         = trim($_POST['nombre'] ?? '');
-        $descripcion    = trim($_POST['descripcion'] ?? '');
+        $nombre = trim($_POST['nombre'] ?? '');
 
         if ($nombre === '') {
             header("Location: index.php?c=roles&a=crear");
@@ -66,13 +63,12 @@ class RolesController
         }
 
         $modelo = new Role($this->conn);
-        $modelo->crear($nombre, $descripcion);
+        $modelo->crear($nombre);
 
         header("Location: index.php?c=roles&a=index");
         exit;
     }
 
-    // Formulario de edición
     public function editar()
     {
         $this->asegurarSesionAdmin();
@@ -89,7 +85,6 @@ class RolesController
         require __DIR__ . '/../views/roles/editar.php';
     }
 
-    // Actualizar rol
     public function actualizar()
     {
         $this->asegurarSesionAdmin();
@@ -99,9 +94,8 @@ class RolesController
             exit;
         }
 
-        $id            = intval($_POST['id_rol'] ?? 0);
-        $nombre        = trim($_POST['nombre'] ?? '');
-        $descripcion   = trim($_POST['descripcion'] ?? '');
+        $id     = intval($_POST['id_rol'] ?? 0);
+        $nombre = trim($_POST['nombre'] ?? '');
 
         if ($id <= 0 || $nombre === '') {
             header("Location: index.php?c=roles&a=index");
@@ -109,7 +103,7 @@ class RolesController
         }
 
         $modelo = new Role($this->conn);
-        $modelo->actualizar($id, $nombre, $descripcion);
+        $modelo->actualizar($id, $nombre);
 
         header("Location: index.php?c=roles&a=index");
         exit;

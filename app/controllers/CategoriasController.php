@@ -22,7 +22,6 @@ class CategoriasController
         require __DIR__ . '/../views/categorias/crear.php';
     }
 
-
     public function guardar()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -32,12 +31,11 @@ class CategoriasController
 
         $nombre      = trim($_POST['nombre'] ?? '');
         $descripcion = trim($_POST['descripcion'] ?? '');
+        // por defecto las creamos 'activo'
         $estado      = $_POST['estado'] ?? 'activo';
-        $activo      = isset($_POST['activo']) ? 1 : 1; // si quieres que siempre se creen activas
-
 
         $categoriaModel = new Categoria($this->conn);
-        $categoriaModel->crearCategoria($nombre, $descripcion, $estado, $activo);
+        $categoriaModel->crearCategoria($nombre, $descripcion, $estado);
 
         header("Location: index.php?c=categorias&a=listar");
         exit;
@@ -73,15 +71,13 @@ class CategoriasController
         $nombre       = trim($_POST['nombre'] ?? '');
         $descripcion  = trim($_POST['descripcion'] ?? '');
         $estado       = $_POST['estado'] ?? 'activo';
-        $activo       = isset($_POST['activo']) ? 1 : 0;
 
         $categoriaModel = new Categoria($this->conn);
         $categoriaModel->editarCategoria(
             $id_categoria,
             $nombre,
             $descripcion,
-            $estado,
-            $activo
+            $estado
         );
 
         header("Location: index.php?c=categorias&a=listar");

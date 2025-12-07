@@ -9,9 +9,7 @@ class Reportes
         $this->conn = $conn;
     }
 
-    /**
-     * CALL sp_reporte_productos_por_negocio(p_id_negocio)
-     */
+    // CALL sp_reporte_productos_por_negocio(p_id_negocio)
     public function productosPorNegocio(int $idNegocio): array
     {
         $stmt = $this->conn->prepare("CALL sp_reporte_productos_por_negocio(?)");
@@ -25,15 +23,12 @@ class Reportes
         $data = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 
         $stmt->close();
-        // Limpia posibles resultados siguientes del CALL
         while ($this->conn->more_results() && $this->conn->next_result()) {;}
 
         return $data;
     }
 
-    /**
-     * CALL sp_reporte_productos_por_categoria(p_id_categoria)
-     */
+    // CALL sp_reporte_productos_por_categoria(p_id_categoria)
     public function productosPorCategoria(int $idCategoria): array
     {
         $stmt = $this->conn->prepare("CALL sp_reporte_productos_por_categoria(?)");
@@ -52,10 +47,7 @@ class Reportes
         return $data;
     }
 
-    /**
-     * CALL sp_reporte_productos_rango_precio(p_precio_min, p_precio_max, p_id_negocio)
-     * Si p_id_negocio = 0 → aplica a todos los negocios (según tu SP)
-     */
+    // CALL sp_reporte_productos_rango_precio(p_precio_min, p_precio_max, p_id_negocio)
     public function productosRangoPrecio(float $min, float $max, int $idNegocio = 0): array
     {
         $stmt = $this->conn->prepare("CALL sp_reporte_productos_rango_precio(?, ?, ?)");
@@ -74,9 +66,7 @@ class Reportes
         return $data;
     }
 
-    /**
-     * CALL sp_reporte_negocios_por_propietario(p_id_propietario)
-     */
+    // CALL sp_reporte_negocios_por_propietario(p_id_propietario)
     public function negociosPorPropietario(int $idPropietario): array
     {
         $stmt = $this->conn->prepare("CALL sp_reporte_negocios_por_propietario(?)");

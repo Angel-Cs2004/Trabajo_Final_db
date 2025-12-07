@@ -18,20 +18,18 @@ CREATE TABLE usuarios (
 CREATE TABLE roles (
     id_rol        INT AUTO_INCREMENT PRIMARY KEY,
     nombre        VARCHAR(100) UNIQUE NOT NULL,
-    estado          ENUM('activo','inactivo') DEFAULT 'activo'
-    -- consultar que es esto
-    );
+    estado        ENUM('activo','inactivo') DEFAULT 'activo'
+);
 
 CREATE TABLE permisos (
     id_permiso    INT AUTO_INCREMENT PRIMARY KEY,
     nombre        VARCHAR(150) NOT NULL,
-    codigo       ENUM('CREATE','READ','UPDATE','DELETE') NOT NULL
+    CRUD          ENUM('CREATE','READ','UPDATE','DELETE') NOT NULL
 );
+
 CREATE TABLE tags (
     id_tag   INT AUTO_INCREMENT PRIMARY KEY,
-    codigo   VARCHAR(50) NOT NULL UNIQUE, -- 'USUARIO','PRODUCTO','NEGOCIO',...
-    nombre   VARCHAR(100) NOT NULL,
-    aplica_a ENUM('general','usuario') NOT NULL DEFAULT 'general'
+    modulos  VARCHAR(50) NOT NULL UNIQUE -- 'usuario','producto','negocio',...
 );
 
 CREATE TABLE rol_tag_permiso (
@@ -52,57 +50,41 @@ CREATE TABLE usuario_rol (
     FOREIGN KEY(id_rol)     REFERENCES roles(id_rol)
 );
 
--- CREATE TABLE rol_permiso (
---     id_rol     INT NOT NULL,
---     id_permiso INT NOT NULL,
---     PRIMARY KEY(id_rol, id_permiso),
---     FOREIGN KEY(id_rol) REFERENCES roles(id_rol),
---     FOREIGN KEY(id_permiso) REFERENCES permisos(id_permiso)
--- );
-
--- EL ATRIBUTO DERIVADO DE DISONIBILIDAD SE  PONE EN MODELS NEGOCIO.PHP
+-- EL ATRIBUTO DERIVADO DE DISPONIBILIDAD SE PONE EN MODELS NEGOCIO.PHP
 CREATE TABLE negocios (
     id_negocio      INT AUTO_INCREMENT PRIMARY KEY,
     nombre          VARCHAR(255) NOT NULL,
     descripcion     VARCHAR(255),
-    -- telefono        VARCHAR(50) NULL,
     estado          ENUM('activo','inactivo') DEFAULT 'activo',
     imagen_logo     VARCHAR(255),
-    hora_apertura  TIME NOT NULL,
-    hora_cierre    TIME NOT NULL,
+    hora_apertura   TIME NOT NULL,
+    hora_cierre     TIME NOT NULL,
     id_propietario  INT NOT NULL,
-    activo          BOOLEAN DEFAULT 1,
     FOREIGN KEY(id_propietario) REFERENCES usuarios(id_usuario),
-    CONSTRAINT check_horario CHECK (hora_cierre > hora_apertura )
+    CONSTRAINT check_horario CHECK (hora_cierre > hora_apertura)
 );
 
 CREATE TABLE horarios_negocio (
     id_horario    INT AUTO_INCREMENT PRIMARY KEY,
-    -- id_negocio    INT NOT NULL,
     dia_semana    ENUM('lunes','martes','miercoles','jueves','viernes','sabado','domingo'),
-    estado          ENUM('activo','inactivo') DEFAULT 'inactivo',
+    estado        ENUM('activo','inactivo') DEFAULT 'inactivo',
     hora_apertura TIME NOT NULL,
-    hora_cierre   TIME NOT NULL,
-    inactivo       BOOLEAN DEFAULT 0
-    -- FOREIGN KEY(id_negocio) REFERENCES negocios(id_negocio)
+    hora_cierre   TIME NOT NULL
 );
 
 CREATE TABLE categorias (
     id_categoria  INT AUTO_INCREMENT PRIMARY KEY,
     nombre        VARCHAR(255) NOT NULL,
     descripcion   VARCHAR(255),
-    estado          ENUM('activo','inactivo') DEFAULT 'inactivo',
-    activo        BOOLEAN DEFAULT 0
+    estado        ENUM('activo','inactivo') DEFAULT 'inactivo'
 );
 
 CREATE TABLE productos (
     id_producto    INT AUTO_INCREMENT PRIMARY KEY,
     nombre         VARCHAR(255) NOT NULL,
-    -- codigo         VARCHAR(100) NOT NULL,
     precio         DECIMAL(10,2) NOT NULL,
     url_imagen     VARCHAR(255),
-    estado          ENUM('activo','inactivo') DEFAULT 'activo',
-    activo         BOOLEAN DEFAULT 1,
+    estado         ENUM('activo','inactivo') DEFAULT 'activo',
     id_categoria   INT NOT NULL,
     id_negocio     INT NOT NULL,
     FOREIGN KEY(id_categoria) REFERENCES categorias(id_categoria),
@@ -115,7 +97,7 @@ CREATE TABLE parametros_imagenes (
     etiqueta        VARCHAR(100) NOT NULL,
     alto_px         INT,
     ancho_px        INT,
-    categoria ENUM('negocios','usuarios','productos') NOT NULL,
+    categoria       ENUM('negocios','usuarios','productos') NOT NULL,
     formatos_validos ENUM('jpg','png','webp','gif') NOT NULL
 );
 
@@ -131,28 +113,24 @@ INSERT INTO roles (nombre, estado) VALUES
 -- =========================================
 -- TAGS (módulos o áreas del sistema)
 -- =========================================
-INSERT INTO tags (codigo, nombre, aplica_a) VALUES
-('usuario',   'Gestión de usuarios',        'usuario'),
-('rol',       'Gestión de roles',           'general'),
-('categoria', 'Gestión de categorías',      'general'),
-('negocio',   'Gestión de negocios',        'general'),
-('producto',  'Gestión de productos',       'general'),
-('reporte',   'Visualización de reportes',  'general');
-
--- IDs esperados:
--- 1: usuario, 2: rol, 3: categoria, 4: negocio, 5: producto, 6: reporte
+-- 1: usuario, 2: rol, 3: imagen, 4: categoria, 5: negocio, 6: producto, 7: reporte
+INSERT INTO tags (modulos) VALUES
+('usuario'),
+('rol'),
+('imagen'),
+('categoria'),
+('negocio'),
+('producto'),
+('reporte');
 
 -- =========================================
 -- PERMISOS (tipo de operación)
 -- =========================================
-INSERT INTO permisos (nombre, codigo) VALUES
+INSERT INTO permisos (nombre, CRUD) VALUES
 ('crear',      'CREATE'),
 ('visualizar', 'READ'),
-('editar',     'UPDATE');
--- (dejamos 'DELETE' en el ENUM por si lo usas luego, pero no lo insertamos aún)
-
--- IDs esperados:
--- 1: crear (CREATE), 2: visualizar (READ), 3: editar (UPDATE)
+('editar',     'UPDATE'),
+('eliminar',   'DELETE');
 
 -- =========================================
 -- USUARIOS
@@ -167,150 +145,82 @@ INSERT INTO usuarios (nombre, correo, identificacion, telefono, password_hash, e
 -- USUARIO_ROL
 -- =========================================
 INSERT INTO usuario_rol (id_usuario, id_rol) VALUES
-(1, 1), -- Angelo -> super_admin (TODOS los permisos)
+(1, 1), -- Angelo -> super_admin
 (2, 2), -- Admin Negocios -> admin_negocio
 (3, 3), -- Operador Demo  -> operador_negocio
 (4, 4); -- Invitado       -> invitado_reportes
 
 -- =========================================
 -- ROL_TAG_PERMISO
--- (matriz de permisos por rol, tag y tipo de operación)
 -- =========================================
 
--- 1) SUPER_ADMIN: tiene TODOS los permisos que definiste en el diseño original
---    (usuarios, roles, categorías, negocios, productos: crear/editar/visualizar
---     + reportes: visualizar)
-
+-- SUPER_ADMIN: TODOS los permisos (1..4) para TODOS los tags (1..7)
 INSERT INTO rol_tag_permiso (id_rol, id_tag, id_permiso) VALUES
--- USUARIOS (tag 1): crear, editar, visualizar
-(1, 1, 1), -- CREATE usuario
-(1, 1, 3), -- UPDATE usuario
-(1, 1, 2), -- READ   usuario
+(1,1,1),(1,1,2),(1,1,3),(1,1,4),
+(1,2,1),(1,2,2),(1,2,3),(1,2,4),
+(1,3,1),(1,3,2),(1,3,3),(1,3,4),
+(1,4,1),(1,4,2),(1,4,3),(1,4,4),
+(1,5,1),(1,5,2),(1,5,3),(1,5,4),
+(1,6,1),(1,6,2),(1,6,3),(1,6,4),
+(1,7,1),(1,7,2),(1,7,3),(1,7,4);
 
--- ROLES (tag 2)
-(1, 2, 1), -- CREATE rol
-(1, 2, 3), -- UPDATE rol
-(1, 2, 2), -- READ   rol
-
--- CATEGORÍAS (tag 3)
-(1, 3, 1), -- CREATE categoria
-(1, 3, 3), -- UPDATE categoria
-(1, 3, 2), -- READ   categoria
-
--- NEGOCIOS (tag 4)
-(1, 4, 1), -- CREATE negocio
-(1, 4, 3), -- UPDATE negocio
-(1, 4, 2), -- READ   negocio
-
--- PRODUCTOS (tag 5)
-(1, 5, 1), -- CREATE producto
-(1, 5, 3), -- UPDATE producto
-(1, 5, 2), -- READ   producto
-
--- REPORTES (tag 6): solo visualizar
-(1, 6, 2); -- READ reporte
-
-
--- 2) ADMIN_NEGOCIO:
---    - Puede gestionar usuarios, categorías, negocios y productos (crear/editar/visualizar)
---    - NO puede gestionar roles
---    - Puede visualizar reportes
-
+-- ADMIN_NEGOCIO (igual que antes, solo usando id_permiso 1..3)
 INSERT INTO rol_tag_permiso (id_rol, id_tag, id_permiso) VALUES
--- USUARIOS (1)
-(2, 1, 1),
-(2, 1, 3),
-(2, 1, 2),
+(2, 1, 1),(2, 1, 3),(2, 1, 2), -- usuario   C/U/R
+(2, 4, 1),(2, 4, 3),(2, 4, 2), -- categoria C/U/R
+(2, 5, 1),(2, 5, 3),(2, 5, 2), -- negocio   C/U/R
+(2, 6, 1),(2, 6, 3),(2, 6, 2), -- producto  C/U/R
+(2, 7, 2);                     -- reporte   READ
 
--- CATEGORÍAS (3)
-(2, 3, 1),
-(2, 3, 3),
-(2, 3, 2),
-
--- NEGOCIOS (4)
-(2, 4, 1),
-(2, 4, 3),
-(2, 4, 2),
-
--- PRODUCTOS (5)
-(2, 5, 1),
-(2, 5, 3),
-(2, 5, 2),
-
--- REPORTES (6): solo visualizar
-(2, 6, 2);
-
-
--- 3) OPERADOR_NEGOCIO:
---    - Categorías: solo visualizar
---    - Negocios: solo visualizar
---    - Productos: crear, editar y visualizar
---    - Reportes: visualizar
-
+-- OPERADOR_NEGOCIO
 INSERT INTO rol_tag_permiso (id_rol, id_tag, id_permiso) VALUES
--- CATEGORÍAS (3): solo READ
-(3, 3, 2),
+(3, 4, 2), -- categoria READ
+(3, 5, 2), -- negocio   READ
+(3, 6, 1),(3, 6, 3),(3, 6, 2), -- producto C/U/R
+(3, 7, 2); -- reporte READ
 
--- NEGOCIOS (4): solo READ
-(3, 4, 2),
-
--- PRODUCTOS (5): CREATE, UPDATE, READ
-(3, 5, 1),
-(3, 5, 3),
-(3, 5, 2),
-
--- REPORTES (6): solo READ
-(3, 6, 2);
-
-
--- 4) INVITADO_REPORTES:
---    - Solo puede visualizar reportes
-
+-- INVITADO_REPORTES
 INSERT INTO rol_tag_permiso (id_rol, id_tag, id_permiso) VALUES
-(4, 6, 2);
+(4, 7, 2); -- reporte READ
 
 
 -- =========================================
 -- NEGOCIOS
 -- =========================================
-INSERT INTO negocios (nombre, descripcion, estado, imagen_logo, hora_apertura, hora_cierre, id_propietario, activo) VALUES
-('Restaurante Doña Pacha', 'Comida criolla y menú diario', 'activo', NULL, '09:00:00', '16:00:00', 2, 1),
-('Pollería El Buen Sabor', 'Pollos a la brasa y parrillas', 'activo', NULL, '12:00:00', '23:00:00', 2, 1),
-('Cevichería El Marino',  'Ceviches y mariscos frescos',   'activo', NULL, '10:00:00', '18:00:00', 3, 1);
-
+INSERT INTO negocios (nombre, descripcion, estado, imagen_logo, hora_apertura, hora_cierre, id_propietario) VALUES
+('Restaurante Doña Pacha', 'Comida criolla y menú diario', 'activo', NULL, '09:00:00', '16:00:00', 2),
+('Pollería El Buen Sabor', 'Pollos a la brasa y parrillas', 'activo', NULL, '12:00:00', '23:00:00', 2),
+('Cevichería El Marino',  'Ceviches y mariscos frescos',   'activo', NULL, '10:00:00', '18:00:00', 3);
 
 -- =========================================
--- HORARIOS_NEGOCIO (plantilla genérica)
+-- HORARIOS_NEGOCIO
 -- =========================================
-INSERT INTO horarios_negocio (dia_semana, estado, hora_apertura, hora_cierre, inactivo) VALUES
-('lunes',    'activo',   '09:00:00', '16:00:00', 0),
-('martes',   'activo',   '09:00:00', '16:00:00', 0),
-('miercoles','activo',   '09:00:00', '16:00:00', 0),
-('jueves',   'activo',   '09:00:00', '16:00:00', 0),
-('viernes',  'activo',   '09:00:00', '16:00:00', 0),
-('sabado',   'activo',   '10:00:00', '15:00:00', 0),
-('domingo',  'inactivo', '00:00:00', '00:00:00', 1);
-
+INSERT INTO horarios_negocio (dia_semana, estado, hora_apertura, hora_cierre) VALUES
+('lunes',    'activo',   '09:00:00', '16:00:00'),
+('martes',   'activo',   '09:00:00', '16:00:00'),
+('miercoles','activo',   '09:00:00', '16:00:00'),
+('jueves',   'activo',   '09:00:00', '16:00:00'),
+('viernes',  'activo',   '09:00:00', '16:00:00'),
+('sabado',   'activo',   '10:00:00', '15:00:00'),
+('domingo',  'inactivo', '00:00:00', '00:00:00');
 
 -- =========================================
 -- CATEGORÍAS
 -- =========================================
-INSERT INTO categorias (nombre, descripcion, estado, activo) VALUES
-('Entradas',         'Platos ligeros para empezar', 'activo', 1),
-('Platos de fondo',  'Platos principales',          'activo', 1),
-('Bebidas',          'Bebidas frías y calientes',   'activo', 1),
-('Postres',          'Dulces y postres',            'activo', 1);
-
+INSERT INTO categorias (nombre, descripcion, estado) VALUES
+('Entradas',         'Platos ligeros para empezar', 'activo'),
+('Platos de fondo',  'Platos principales',          'activo'),
+('Bebidas',          'Bebidas frías y calientes',   'activo'),
+('Postres',          'Dulces y postres',            'activo');
 
 -- =========================================
 -- PRODUCTOS
 -- =========================================
-INSERT INTO productos (nombre, precio, url_imagen, estado, activo, id_categoria, id_negocio) VALUES
-('Ceviche clásico',  25.00, NULL, 'activo', 1, 1, 3),
-('Lomo saltado',     28.50, NULL, 'activo', 1, 2, 1),
-('Inca Kola 500ml',   5.00, NULL, 'activo', 1, 3, 1),
-('Mazamorra morada',  6.50, NULL, 'activo', 1, 4, 1);
-
+INSERT INTO productos (nombre, precio, url_imagen, estado, id_categoria, id_negocio) VALUES
+('Ceviche clásico',  25.00, NULL, 'activo', 1, 3),
+('Lomo saltado',     28.50, NULL, 'activo', 2, 1),
+('Inca Kola 500ml',   5.00, NULL, 'activo', 3, 1),
+('Mazamorra morada',  6.50, NULL, 'activo', 4, 1);
 
 -- =========================================
 -- PARÁMETROS DE IMÁGENES
@@ -320,9 +230,8 @@ INSERT INTO parametros_imagenes (nombre, etiqueta, alto_px, ancho_px, categoria,
 ('Foto Producto',  'foto_producto',  600, 600, 'productos','jpg'),
 ('Avatar Usuario', 'avatar_usuario', 200, 200, 'usuarios', 'jpg');
 
-
 -- =================================================
---                    FUNCIONES
+--                    PROCEDIMIENTOS
 -- =================================================
 DELIMITER $$
 
@@ -339,7 +248,6 @@ BEGIN
     VALUES (p_nombre, p_descripcion, p_imagen_logo, p_hora_apertura, p_hora_cierre, p_id_propietario);
 END $$
 
-
 CREATE PROCEDURE sp_insertar_producto(
     IN p_nombre       VARCHAR(255),
     IN p_precio       DECIMAL(10,2),
@@ -348,13 +256,11 @@ CREATE PROCEDURE sp_insertar_producto(
     IN p_id_negocio   INT
 )
 BEGIN
-    INSERT INTO productos (nombre, precio, url_imagen, id_categoria, id_negocio)
-    VALUES (p_nombre, p_precio, p_url_imagen, p_id_categoria, p_id_negocio);
+    INSERT INTO productos (nombre, precio, url_imagen, estado, id_categoria, id_negocio)
+    VALUES (p_nombre, p_precio, p_url_imagen, 'activo', p_id_categoria, p_id_negocio);
 END $$
 
--- ==============================================
 -- REPORTE: PRODUCTOS POR NEGOCIO
--- ==============================================
 CREATE PROCEDURE sp_reporte_productos_por_negocio(
     IN p_id_negocio INT
 )
@@ -366,18 +272,15 @@ BEGIN
         p.nombre          AS producto,
         p.precio,
         c.nombre          AS categoria,
-        p.estado,
-        p.activo
+        p.estado
     FROM productos p
-    INNER JOIN negocios n   ON p.id_negocio = n.id_negocio
+    INNER JOIN negocios n   ON p.id_negocio   = n.id_negocio
     INNER JOIN categorias c ON p.id_categoria = c.id_categoria
     WHERE p.id_negocio = p_id_negocio
-      AND p.activo = 1;
+      AND p.estado = 'activo';
 END $$
 
--- ==============================================
 -- REPORTE: PRODUCTOS POR CATEGORÍA
--- ==============================================
 CREATE PROCEDURE sp_reporte_productos_por_categoria(
     IN p_id_categoria INT
 )
@@ -389,18 +292,15 @@ BEGIN
         p.nombre       AS producto,
         p.precio,
         n.nombre       AS negocio,
-        p.estado,
-        p.activo
+        p.estado
     FROM productos p
     INNER JOIN categorias c ON p.id_categoria = c.id_categoria
     INNER JOIN negocios   n ON p.id_negocio   = n.id_negocio
     WHERE p.id_categoria = p_id_categoria
-      AND p.activo = 1;
+      AND p.estado = 'activo';
 END $$
 
--- ==============================================
 -- REPORTE: PRODUCTOS POR RANGO DE PRECIO
--- ==============================================
 CREATE PROCEDURE sp_reporte_productos_rango_precio(
     IN p_precio_min DECIMAL(10,2),
     IN p_precio_max DECIMAL(10,2),
@@ -414,20 +314,16 @@ BEGIN
         c.nombre        AS categoria,
         n.id_negocio,
         n.nombre        AS negocio,
-        p.estado,
-        p.activo
+        p.estado
     FROM productos p
     INNER JOIN categorias c ON p.id_categoria = c.id_categoria
     INNER JOIN negocios   n ON p.id_negocio   = n.id_negocio
     WHERE p.precio BETWEEN p_precio_min AND p_precio_max
-      AND p.activo = 1
+      AND p.estado = 'activo'
       AND (p_id_negocio = 0 OR p.id_negocio = p_id_negocio);
 END $$
 
--- ==============================================
 -- REPORTE: NEGOCIOS POR PROPIETARIO
--- (adaptado a columnas reales de negocios)
--- ==============================================
 CREATE PROCEDURE sp_reporte_negocios_por_propietario(
     IN p_id_propietario INT
 )
@@ -440,17 +336,13 @@ BEGIN
         n.descripcion,
         n.estado,
         n.hora_apertura,
-        n.hora_cierre,
-        n.activo
+        n.hora_cierre
     FROM negocios n
     INNER JOIN usuarios u ON n.id_propietario = u.id_usuario
     WHERE n.id_propietario = p_id_propietario;
 END $$
 
--- ==============================================
 -- OBTENER USUARIO PARA LOGIN
--- (sigue siendo válido con tu BD actual)
--- ==============================================
 CREATE PROCEDURE sp_obtener_usuario_login(
     IN p_correo VARCHAR(255)
 )

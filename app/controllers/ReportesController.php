@@ -35,7 +35,7 @@ class ReportesController
 
         $reportesModel = new Reportes($this->conn);
 
-        // Filtros que te pueden llegar por GET o POST
+        // Filtros que llegan por GET (podrías cambiar a POST si quieres)
         $idCategoria = isset($_GET['id_categoria']) ? (int)$_GET['id_categoria'] : 0;
         $precioMin   = isset($_GET['precio_min']) ? (float)$_GET['precio_min'] : 0;
         $precioMax   = isset($_GET['precio_max']) ? (float)$_GET['precio_max'] : 0;
@@ -55,7 +55,6 @@ class ReportesController
         require __DIR__ . '/../views/Reportes/General/index.php';
     }
 
-
     public function ReporteNegocio()
     {
         $this->asegurarSesion();
@@ -64,21 +63,25 @@ class ReportesController
         $negocioModel  = new Negocio($this->conn);
 
         $idUsuario = (int) $_SESSION['id_usuario'];
+        $rol       = $_SESSION['rol'] ?? '';
 
-        if ($_SESSION['rol'] === 'super_admin' || $_SESSION['rol'] === 'admin_negocio' || $_SESSION['rol'] === 'admin') {
+        // super_admin y admin_negocio pueden elegir negocio por GET
+        if ($rol === 'super_admin' || $rol === 'admin_negocio') {
             $idNegocio = isset($_GET['id_negocio']) ? (int)$_GET['id_negocio'] : 0;
         } else {
+            // operador_negocio / invitado_reportes → primer negocio del propietario (si tiene)
             $negociosPropio = $negocioModel->obtenerPorPropietario($idUsuario);
             $idNegocio = $negociosPropio ? (int)$negociosPropio[0]['id_negocio'] : 0;
         }
 
-        $productos = [];
+        $productos              = [];
         $negociosDelPropietario = [];
 
         if ($idNegocio > 0) {
             $productos = $reportesModel->productosPorNegocio($idNegocio);
         }
 
+        // Lista de negocios del usuario logueado (para combos en la vista)
         $negociosDelPropietario = $negocioModel->obtenerPorPropietario($idUsuario);
 
         require __DIR__ . '/../views/Reportes/Negocio/index.php';

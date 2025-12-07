@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__ . '/../models/Negocio.php';
-require_once __DIR__ . '/../models/Usuarios.php';
 
 class NegocioController
 {
@@ -35,10 +34,12 @@ class NegocioController
 
         $modeloNegocio = new Negocio($this->conn);
 
-        if ($_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'super_admin') {
+        // super_admin y admin_negocio ven todos los negocios
+        if ($_SESSION['rol'] === 'admin_negocio' || $_SESSION['rol'] === 'super_admin') {
             $negocios = $modeloNegocio->obtenerTodos();
         } else {
-            $negocios = $modeloNegocio->obtenerPorPropietario($_SESSION['id_usuario']);
+            // operador / invitado → solo los suyos (si aplica)
+            $negocios = $modeloNegocio->obtenerPorPropietario((int)$_SESSION['id_usuario']);
         }
 
         require __DIR__ . '/../views/negocios/index.php';
@@ -48,12 +49,12 @@ class NegocioController
     {
         $this->asegurarSesion();
 
-        // Si es admin → puede asignar propietario
-        if ($_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'super_admin') {
+        // Si es admin_negocio o super_admin → puede asignar propietario
+        if ($_SESSION['rol'] === 'admin_negocio' || $_SESSION['rol'] === 'super_admin') {
             $modeloUsuario = new Usuarios($this->conn);
             $usuarios = $modeloUsuario->obtenerTodos();
         } else {
-            // Si es propietario → solo él mismo
+            // Si es propietario normal → solo él mismo
             $usuarios = [];
         }
 
@@ -74,14 +75,13 @@ class NegocioController
         $estado       = $_POST['estado'] ?? 'activo';          // <select name="estado">
         $horaApertura = $_POST['hora_apertura'] ?? '';         // <input type="time" name="hora_apertura">
         $horaCierre   = $_POST['hora_cierre'] ?? '';           // <input type="time" name="hora_cierre">
-        $imagen_logo  = null;                                  // luego puedes meter upload
-        $activo       = 1;
+        $imagen_logo  = null;                                  // luego metes upload si quieres
 
-        // ADMIN: puede asignar propietario
-        if ($_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'super_admin') {
+        // ADMIN_NEGOCIO / SUPER_ADMIN: puede asignar propietario
+        if ($_SESSION['rol'] === 'admin_negocio' || $_SESSION['rol'] === 'super_admin') {
             $idPropietario = intval($_POST['id_propietario'] ?? 0);
         } else {
-            $idPropietario = $_SESSION['id_usuario'];
+            $idPropietario = (int)$_SESSION['id_usuario'];
         }
 
         // Validación mínima
@@ -99,14 +99,12 @@ class NegocioController
             $estado,
             $horaApertura,
             $horaCierre,
-            $activo,
             $idPropietario
         );
 
         header("Location: index.php?c=negocio&a=listar");
         exit;
     }
-
 
     public function editar()
     {
@@ -127,14 +125,14 @@ class NegocioController
         }
 
         // Propietario solo puede editar lo suyo
-        if ($_SESSION['rol'] !== 'admin' && $_SESSION['rol'] !== 'super_admin') {
-            if ($negocio['id_propietario'] != $_SESSION['id_usuario']) {
+        if ($_SESSION['rol'] !== 'admin_negocio' && $_SESSION['rol'] !== 'super_admin') {
+            if ((int)$negocio['id_propietario'] !== (int)$_SESSION['id_usuario']) {
                 header("Location: index.php?c=negocio&a=listar");
                 exit;
             }
         }
 
-        if ($_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'super_admin') {
+        if ($_SESSION['rol'] === 'admin_negocio' || $_SESSION['rol'] === 'super_admin') {
             $modeloUsuario = new Usuarios($this->conn);
             $usuarios = $modeloUsuario->obtenerTodos();
         } else {
@@ -159,7 +157,6 @@ class NegocioController
         $estado        = $_POST['estado'] ?? 'activo';
         $horaApertura  = $_POST['hora_apertura'] ?? '';
         $horaCierre    = $_POST['hora_cierre'] ?? '';
-        $activo        = isset($_POST['activo']) ? 1 : 0;
 
         $modeloNegocio = new Negocio($this->conn);
         $negocioActual = $modeloNegocio->obtenerPorId($id);
@@ -170,10 +167,10 @@ class NegocioController
         }
 
         // quién será el propietario luego de actualizar
-        if ($_SESSION['rol'] === 'admin' || $_SESSION['rol'] === 'super_admin') {
+        if ($_SESSION['rol'] === 'admin_negocio' || $_SESSION['rol'] === 'super_admin') {
             $idPropietario = intval($_POST['id_propietario'] ?? $negocioActual['id_propietario']);
         } else {
-            $idPropietario = $negocioActual['id_propietario'];
+            $idPropietario = (int)$negocioActual['id_propietario'];
         }
 
         $imagen_logo = $negocioActual['imagen_logo']; // por ahora no cambiamos logo
@@ -186,14 +183,12 @@ class NegocioController
             $estado,
             $horaApertura,
             $horaCierre,
-            $activo,
             $idPropietario
         );
 
         header("Location: index.php?c=negocio&a=listar");
         exit;
     }
-
 
     public function perfil()
     {
@@ -203,7 +198,8 @@ class NegocioController
 
         require __DIR__ . '/../views/negocios/perfil.php';
     }
-        public function listar()
+
+    public function listar()
     {
         // Puedes simplemente reutilizar index()
         $this->index();
