@@ -44,9 +44,8 @@ require __DIR__ . '/../layouts/header.php';
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teléfono</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Disponibilidad</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Activo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Propietario</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                     </tr>
@@ -61,7 +60,6 @@ require __DIR__ . '/../layouts/header.php';
 
                                 <td class="px-6 py-3"><?= htmlspecialchars($negocio['descripcion'] ?? '-') ?></td>
 
-                                <td class="px-6 py-3"><?= htmlspecialchars($negocio['telefono'] ?? '-') ?></td>
 
                                 <td class="px-6 py-3">
                                     <?php if (($negocio['estado_disponibilidad'] ?? '') === 'abierto'): ?>
@@ -72,12 +70,13 @@ require __DIR__ . '/../layouts/header.php';
                                 </td>
 
                                 <td class="px-6 py-3">
-                                    <?php if (($negocio['activo'] ?? 0) == 1): ?>
+                                    <?php if (($negocio['estado'] ?? '') === 'activo'): ?>
                                         <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Activo</span>
                                     <?php else: ?>
                                         <span class="px-2 py-1 text-xs bg-gray-300 text-gray-700 rounded">Inactivo</span>
                                     <?php endif; ?>
                                 </td>
+
 
                                 <td class="px-6 py-3"><?= htmlspecialchars($negocio['propietario'] ?? '-') ?></td>
 

@@ -17,21 +17,11 @@ class HomeController
 
     public function dashboardAdmin()
     {
-        if ($_SESSION['rol'] !== 'admin' && $_SESSION['rol'] !== 'super_admin') {
-            header("Location: index.php?c=home&a=dashboardProveedor");
-            exit;
-        }
-
         require __DIR__ . '/../views/home/dashboard_admin.php';
     }
 
     public function dashboardProveedor()
     {
-        if ($_SESSION['rol'] !== 'proveedor') {
-            header("Location: index.php?c=home&a=dashboardAdmin");
-            exit;
-        }
-
-        require __DIR__ . '/../views/home/dashboard_prove.php';
+        require __DIR__ . '/../views/home/dashboard_admin.php';
     }
 }

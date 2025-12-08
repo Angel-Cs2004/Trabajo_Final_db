@@ -9,64 +9,114 @@ require __DIR__ . '/../layouts/header.php';
 
         <h3 class="text-xl font-semibold mb-6">Editar negocio</h3>
 
-        <form action="index.php?c=negocio&a=actualizar" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form action="index.php?c=negocio&a=actualizar"
+              method="POST"
+              class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <input type="hidden" name="id_negocio" value="<?= $negocio['id_negocio'] ?>">
+            <!-- ID oculto -->
+            <input type="hidden"
+                   name="id_negocio"
+                   value="<?= (int)$negocio['id_negocio'] ?>">
 
             <!-- Nombre -->
             <div>
-                <label class="block text-sm font-medium mb-1">* Nombre:</label>
-                <input type="text" 
+                <label class="block text-sm font-medium mb-1">* Nombre del negocio:</label>
+                <input type="text"
                        name="nombre"
+                       class="w-full border rounded-lg px-4 py-2"
                        value="<?= htmlspecialchars($negocio['nombre'] ?? '') ?>"
-                       class="w-full border rounded-lg px-4 py-2" 
+                       placeholder="ej. Local Del Sabor"
                        required>
             </div>
 
-            <!-- Teléfono -->
-            <div>
-                <label class="block text-sm font-medium mb-1">Teléfono:</label>
-                <input type="text" 
-                       name="telefono"
-                       value="<?= htmlspecialchars($negocio['telefono'] ?? '') ?>"
-                       class="w-full border rounded-lg px-4 py-2" 
-                       required>
-            </div>
-
-            <!-- Descripción -->
+            <!-- Descripción / slogan -->
             <div class="md:col-span-2">
-                <label class="block text-sm font-medium mb-1">Descripción:</label>
+                <label class="block text-sm font-medium mb-1">Descripción / slogan:</label>
                 <textarea name="descripcion"
-                          class="w-full border rounded-lg px-4 py-2 min-h-[100px]"><?= htmlspecialchars($negocio['descripcion'] ?? '') ?></textarea>
+                          class="w-full border rounded-lg px-4 py-2 min-h-[100px]"
+                          placeholder="Describe tu negocio en pocas palabras..."><?= htmlspecialchars($negocio['descripcion'] ?? '') ?></textarea>
+            </div>
+
+            <!-- Disponibilidad local (solo visual, no se guarda) -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Disponibilidad local:</label>
+                <select class="w-full border rounded-lg px-4 py-2" disabled>
+                    <option>Se calcula según horario</option>
+                </select>
+                <p class="text-xs text-gray-500 mt-1">
+                    La disponibilidad se deriva de la hora actual vs. horario de apertura/cierre.
+                </p>
             </div>
 
             <!-- Estado -->
-            <div class="flex items-center pt-2">
-                <input type="checkbox"
-                    name="estado_disponibilidad"
-                    value="1"
-                    class="w-5 h-5 text-green-600 border rounded"
-                    <?= ($negocio['activo'] == 1 ? 'checked' : '') ?>>
+            <div>
+                <label class="block text-sm font-medium mb-1">* Estado:</label>
+                <select name="estado"
+                        class="w-full border rounded-lg px-4 py-2"
+                        required>
+                    <option value="activo"
+                        <?= ($negocio['estado'] ?? '') === 'activo' ? 'selected' : '' ?>>
+                        Activo
+                    </option>
+                    <option value="inactivo"
+                        <?= ($negocio['estado'] ?? '') === 'inactivo' ? 'selected' : '' ?>>
+                        Inactivo
+                    </option>
+                </select>
+            </div>
 
-                <label class="ml-2 text-sm font-medium">Activo</label>
+            <!-- Horario de atención -->
+            <div>
+                <label class="block text-sm font-medium mb-1">* Hora de apertura:</label>
+                <input type="time"
+                       name="hora_apertura"
+                       class="w-full border rounded-lg px-4 py-2"
+                       value="<?= htmlspecialchars($negocio['hora_apertura'] ?? '') ?>"
+                       required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-1">* Hora de cierre:</label>
+                <input type="time"
+                       name="hora_cierre"
+                       class="w-full border rounded-lg px-4 py-2"
+                       value="<?= htmlspecialchars($negocio['hora_cierre'] ?? '') ?>"
+                       required>
             </div>
 
             <!-- Propietario -->
             <div>
                 <label class="block text-sm font-medium mb-1">Propietario:</label>
-                <select name="id_propietario" class="w-full border rounded-lg px-4 py-2" required>
+
+                <select name="id_propietario"
+                        class="w-full border rounded-lg px-4 py-2"
+                        required>
                     <option value="">Seleccione un propietario</option>
 
                     <?php foreach ($usuarios as $usuario): ?>
-                        <?php if ($usuario['rol'] === 'propietario'): ?>
-                            <option value="<?= $usuario['id_usuario'] ?>"
-                                <?= ($negocio['id_propietario'] == $usuario['id_usuario'] ? 'selected' : '') ?>>
-                                <?= htmlspecialchars($usuario['nombre']) ?> (<?= htmlspecialchars($usuario['rol']) ?>)
-                            </option>
-                        <?php endif; ?>
+                        <option value="<?= (int)$usuario['id_usuario'] ?>"
+                            <?= (int)$usuario['id_usuario'] === (int)($negocio['id_propietario'] ?? 0) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($usuario['nombre']) ?>
+                        </option>
                     <?php endforeach; ?>
-
                 </select>
+            </div>
+
+            <!-- URL del logo -->
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-1">
+                    Logo (200px * 300px) - URL de la imagen:
+                </label>
+
+                <input type="text"
+                       name="imagen_logo"
+                       class="w-full border rounded-lg px-4 py-2"
+                       value="<?= htmlspecialchars($negocio['imagen_logo'] ?? '') ?>"
+                       placeholder="https://mis-imagenes.com/logo-negocio.png">
+
+                <p class="text-xs text-gray-500 mt-1">
+                    Pega aquí la URL directa del logo (.jpg, .png, .webp, etc.).
+                </p>
             </div>
 
             <!-- Botones -->
@@ -77,7 +127,7 @@ require __DIR__ . '/../layouts/header.php';
                     Cancelar
                 </a>
 
-                <button type="submit" 
+                <button type="submit"
                         class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg">
                     Actualizar
                 </button>

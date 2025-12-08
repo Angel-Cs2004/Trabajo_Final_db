@@ -104,4 +104,41 @@ class Categoria
         $stmt->close();
         return $ok;
     }
+    public function buscarPorNombre(string $nombre): ?array
+    {
+        $sql = "SELECT * FROM categorias WHERE nombre = ? LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        if (!$stmt) return null;
+
+        $stmt->bind_param('s', $nombre);
+        $stmt->execute();
+        $res  = $stmt->get_result();
+        $dato = $res ? $res->fetch_assoc() : null;
+        $stmt->close();
+
+        return $dato ?: null;
+    }
+
+    /**
+     * Crea una categoría básica en estado 'activo'
+     */
+    public function crearRapida(string $nombre): ?int
+    {
+        $sql = "INSERT INTO categorias (nombre, estado) VALUES (?, 'activo')";
+        $stmt = $this->conn->prepare($sql);
+        if (!$stmt) return null;
+
+        $stmt->bind_param('s', $nombre);
+        $ok = $stmt->execute();
+
+        if (!$ok) {
+            $stmt->close();
+            return null;
+        }
+
+        $id = $stmt->insert_id;
+        $stmt->close();
+        return $id;
+    }
+
 }

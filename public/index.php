@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../vendor/autoload.php';   // <--- NUEVO
 
 // Configuración de base de datos
 require_once __DIR__ . '/../app/config/db.php';
@@ -86,11 +87,14 @@ switch ($c) {
             $controller->editar();
         } elseif ($a === 'actualizar') {
             $controller->actualizar();
+        } elseif ($a === 'eliminar') {
+            $controller->eliminar();          // AÑADI ESTO
         } else {
             header('Location: index.php?c=roles&a=index');
             exit;
         }
         break;
+
 
     // PARÁMETROS
     case 'parametros':
@@ -118,16 +122,26 @@ switch ($c) {
 
         if ($a === 'listar') {
             $controller->index();
+        } elseif ($a === 'misNegocios') {
+            $controller->misNegocios();
+        } elseif ($a === 'crearPropietario') {
+            $controller->crearPropietario();
         } elseif ($a === 'crear') {
             $controller->crear();
         } elseif ($a === 'guardar') {
             $controller->guardar();
+        } elseif ($a === 'guardar_prop') {
+            $controller->guardarPorId();
         } elseif ($a === 'editar') {
             $controller->editar();
         } elseif ($a === 'actualizar') {
             $controller->actualizar();
+        } elseif ($a === 'actualizarPropietario') {
+            $controller->actualizarPropietario();
         } elseif ($a === 'perfil') {
             $controller->perfil();    
+        }elseif ($a === 'misNegocios') {
+            $controller->misNegocios();
         } else {
             header('Location: index.php?c=negocio&a=listar');
             exit;
@@ -142,47 +156,45 @@ switch ($c) {
             $controller->listar();
         } elseif ($a === 'crear') {
             $controller->crear();
+        } elseif ($a === 'editar') {
+            $controller->editar();
         } elseif ($a === 'guardar') {
             $controller->guardar();
+        } elseif ($a === 'actualizar') {
+            $controller->actualizar();
+        } elseif ($a === 'importar') {
+            $controller->importar(); // cuando lo implementes
         } else {
             header('Location: index.php?c=productoTienda&a=listar');
             exit;
         }
         break;
 
-    case 'productoGeneral':
-        $controller = new ProductoGeneralController($conn);
 
-        if ($a === 'listar') {
-            $controller->listar();
-        } elseif ($a === 'crear') {
-            $controller->crear();
-        } elseif ($a === 'guardar') {
-            $controller->guardar();
-        } else {
-            header('Location: index.php?c=productoGeneral&a=listar');
-            exit;
-        }
-        break;
+case 'productoGeneral':
+    $controller = new ProductoGeneralController($conn);
+
+    if ($a === 'listar') {
+        $controller->listar();
+    } elseif ($a === 'crear') {
+        $controller->crear();
+    } elseif ($a === 'guardar') {
+        $controller->guardar();
+    } elseif ($a === 'editar') {
+        $controller->editar();
+    } elseif ($a === 'actualizar') {
+        $controller->actualizar();
+    } elseif ($a === 'eliminar') {
+        $controller->eliminar();
+    } else {
+        header('Location: index.php?c=productoGeneral&a=listar');
+        exit;
+    }
+    break;
+
 
     case 'categorias':
         $controller = new CategoriasController($conn);
-
-        if ($a === 'listar') {
-            $controller->listar();
-        } elseif ($a === 'crear') {
-            $controller->crear();
-        } elseif ($a === 'guardar') {
-            $controller->guardar();
-        } else {
-            header('Location: index.php?c=productoTienda&a=listar');
-            exit;
-        }
-        break;
-
-    // REPORTES
-    case 'negocio':
-        $controller = new NegocioController($conn);
 
         if ($a === 'listar') {
             $controller->listar();
@@ -194,12 +206,18 @@ switch ($c) {
             $controller->editar();
         } elseif ($a === 'actualizar') {
             $controller->actualizar();
+        } elseif ($a === 'desactivar') {
+            $controller->desactivar();
+        } elseif ($a === 'eliminar') {
+            $controller->eliminar();
         } else {
-            header('Location: index.php?c=negocio&a=listar');
+            header("Location: index.php?c=categorias&a=listar");
             exit;
         }
         break;
 
+
+    // REPORTES
 
     case 'reporte':
         $controller = new ReportesController($conn);

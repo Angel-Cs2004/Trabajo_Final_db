@@ -23,11 +23,6 @@ class UsuariosController
             header("Location: index.php?c=auth&a=login");
             exit;
         }
-
-        if ($_SESSION['rol'] !== 'admin' && $_SESSION['rol'] !== 'super_admin') {
-            header("Location: index.php?c=home&a=dashboardProveedor");
-            exit;
-        }
     }
 
     // Listar usuarios

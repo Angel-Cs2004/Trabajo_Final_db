@@ -19,6 +19,17 @@ require __DIR__ . '/../layouts/header.php';
             </a>
         </div>
 
+        <!-- Mensaje de error si no se pudo eliminar el rol -->
+        <?php if (!empty($error) && $error === 'rol_en_uso'): ?>
+            <div class="px-6 py-3 bg-red-50 border-b border-red-200">
+                <p class="text-sm text-red-700">
+                    No se puede eliminar este rol porque está asociado a uno o más usuarios.
+                    Primero reasigna o elimina esos usuarios.
+                </p>
+            </div>
+        <?php endif; ?>
+
+        <!-- Controles de tabla -->
         <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <div class="flex items-center space-x-4">
                 <span class="text-sm text-gray-600">Mostrar</span>
@@ -34,7 +45,7 @@ require __DIR__ . '/../layouts/header.php';
                 <span class="text-sm text-gray-600">Buscar:</span>
                 <input id="searchRoles" type="text"
                        class="border border-gray-300 rounded px-3 py-1.5 text-sm"
-                       placeholder = "Por nombre" />
+                       placeholder="Por nombre" />
             </div>
         </div>
 
@@ -44,23 +55,36 @@ require __DIR__ . '/../layouts/header.php';
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Permisos</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Delete</th>
                     </tr>
                 </thead>
-
+                
                 <tbody id="rolesTableBody">
                     <?php if (!empty($roles)): ?>
                         <?php foreach ($roles as $rol): ?>
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-3"><?= htmlspecialchars($rol['nombre']) ?></td>
-                            <td class="px-6 py-3"><?= htmlspecialchars($rol['descripcion'] ?? '-') ?></td>
-                            <td class="px-6 py-3"> - </td>
                             <td class="px-6 py-3">
+                                <?= htmlspecialchars($rol['nombre']) ?>
+                            </td>
+                            
+
+                            <td class="px-6 py-3 space-x-2">
+                                <!-- Botón Editar -->
                                 <a href="index.php?c=roles&a=editar&id=<?= $rol['id_rol'] ?>"
                                    class="bg-purple-900 hover:bg-purple-800 text-white px-3 py-1 rounded text-xs">
                                     Editar
+                                </a>
+
+                            </td>
+
+                            <td class="px-6 py-3 space-x-2">
+
+                                <!-- Botón Eliminar -->
+                                <a href="index.php?c=roles&a=eliminar&id=<?= $rol['id_rol'] ?>"
+                                   class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs"
+                                   onclick="return confirm('¿Seguro que quieres eliminar el rol <?= htmlspecialchars($rol['nombre']) ?>?');">
+                                    Eliminar
                                 </a>
                             </td>
                         </tr>

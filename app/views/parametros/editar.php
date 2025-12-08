@@ -18,7 +18,7 @@ require __DIR__ . '/../layouts/header.php';
             <!-- Etiqueta -->
             <div>
                 <label class="block text-sm font-medium mb-1">*Nombre:</label>
-                <input name="etiqueta" 
+                <input name="nombre" 
                        type="text"
                        value="<?= htmlspecialchars($param['etiqueta']) ?>"
                        class="w-full border rounded-lg px-4 py-2" 
@@ -27,10 +27,10 @@ require __DIR__ . '/../layouts/header.php';
 
             <!-- Tipo -->
             <div>
-                <label class="block text-sm font-medium mb-1">* Eetiqueta:</label>
-                <input name="tipo" 
+                <label class="block text-sm font-medium mb-1">* Etiqueta:</label>
+                <input name="etiqueta" 
                        type="text"
-                       value="<?= htmlspecialchars($param['tipo']) ?>"
+                       value="<?= htmlspecialchars($param['etiqueta']) ?>"
                        class="w-full border rounded-lg px-4 py-2" 
                        required>
             </div>
@@ -56,14 +56,7 @@ require __DIR__ . '/../layouts/header.php';
             </div>
 
             <!-- Tamaño -->
-            <div>
-                <label class="block text-sm font-medium mb-1">* Tamaño(KB):</label>
-                <input name="tamano_kb" 
-                       type="number"
-                       value="<?= htmlspecialchars($param['tamano_kb']) ?>"
-                       class="w-full border rounded-lg px-4 py-2" 
-                       required>
-            </div>
+
 
             <!-- Categoría -->
             <div>
@@ -71,9 +64,9 @@ require __DIR__ . '/../layouts/header.php';
                 <select name="categoria_admin" 
                         class="w-full border rounded-lg px-4 py-2">
                         
-                    <option value="negocios"  <?= $param['categoria_admin']=='negocios' ? 'selected':'' ?>>Negocios</option>
-                    <option value="usuarios"  <?= $param['categoria_admin']=='usuarios' ? 'selected':'' ?>>Usuarios</option>
-                    <option value="productos" <?= $param['categoria_admin']=='productos'? 'selected':'' ?>>Productos</option>
+                    <option value="negocios"  <?= $param['categoria']=='negocios' ? 'selected':'' ?>>Negocios</option>
+                    <option value="usuarios"  <?= $param['categoria']=='usuarios' ? 'selected':'' ?>>Usuarios</option>
+                    <option value="productos" <?= $param['categoria']=='productos'? 'selected':'' ?>>Productos</option>
                 </select>
             </div>
 
@@ -87,14 +80,7 @@ require __DIR__ . '/../layouts/header.php';
             </div>
 
             <!-- Activo -->
-            <div class="flex items-center md:col-span-2 pt-2">
-                <input type="checkbox" 
-                       name="activo" 
-                       value="1"
-                       class="w-5 h-5 text-green-600 border rounded"
-                       <?= $param['activo'] ? 'checked' : '' ?>>
-                <label class="ml-2 text-sm font-medium">Activo</label>
-            </div>
+
 
             <!-- Botones -->
             <div class="md:col-span-2 flex justify-end gap-3 pt-6">

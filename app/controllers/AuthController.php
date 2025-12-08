@@ -32,7 +32,7 @@ class AuthController
                     $mensajeError = "Usuario o contraseña incorrectos.";
                 } else {
 
-                    // OJO: aquí aún estás comparando en texto plano
+                    // aquí aún estás comparando en texto plano
                     // Luego lo cambiamos a password_verify cuando migres los hashes.
                     if ($password === $usuarioBD['password_hash']) {
 
@@ -58,14 +58,7 @@ class AuthController
 
                         $_SESSION['usuario_auth'] = $estructuraPermisos;
 
-                        // Redirección según rol principal
-                        // super_admin y admin_negocio -> dashboardAdmin
-                        // resto -> dashboardProveedor
-                        if (in_array($_SESSION['rol'], ['super_admin', 'admin_negocio'], true)) {
-                            header("Location: index.php?c=home&a=dashboardAdmin");
-                        } else {
-                            header("Location: index.php?c=home&a=dashboardProveedor");
-                        }
+                        header("Location: index.php?c=home&a=dashboardAdmin");
                         exit;
 
                     } else {

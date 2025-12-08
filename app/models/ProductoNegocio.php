@@ -18,19 +18,23 @@ class ProductoNegocio
      */
     public function obtenerTodos(int $idUsuarioPropietario): array
     {
-        $sql = "SELECT p.*, c.nombre AS nombre_categoria, n.nombre AS nombre_negocio
+        $sql = "SELECT 
+                    p.*, 
+                    c.nombre AS nombre_categoria, 
+                    n.id_negocio,
+                    n.nombre AS nombre_negocio
                 FROM productos p
                 INNER JOIN categorias c ON p.id_categoria = c.id_categoria
                 INNER JOIN negocios   n ON p.id_negocio   = n.id_negocio
                 WHERE n.id_propietario = ?
-                ORDER BY p.nombre ASC";
+                ORDER BY n.nombre ASC, p.nombre ASC";   
 
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) {
             return [];
         }
 
-        $stmt->bind_param("i", $idUsuarioPropietario);
+        $stmt->bind_param('i', $idUsuarioPropietario);
         $stmt->execute();
         $resultado = $stmt->get_result();
         $productos = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
@@ -38,6 +42,7 @@ class ProductoNegocio
 
         return $productos;
     }
+
 
     /**
      * Crea un producto asociado a un negocio
@@ -149,4 +154,34 @@ class ProductoNegocio
 
         return $ok;
     }
+    public function crearDesdeImport(
+    string $nombre,
+    float $precio,
+    int $idCategoria,
+    ?string $urlImagen,
+    string $estado,
+    int $idNegocio
+): bool {
+    $sql = "INSERT INTO productos_negocio
+            (nombre, precio, id_categoria, url_imagen, estado, id_negocio)
+            VALUES (?, ?, ?, ?, ?, ?)";
+
+    $stmt = $this->conn->prepare($sql);
+    if (!$stmt) return false;
+
+    $stmt->bind_param(
+        'sdissi',
+        $nombre,
+        $precio,
+        $idCategoria,
+        $urlImagen,
+        $estado,
+        $idNegocio
+    );
+
+    $ok = $stmt->execute();
+    $stmt->close();
+    return $ok;
+}
+
 }

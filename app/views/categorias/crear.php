@@ -1,5 +1,5 @@
 <?php
-$pageTitle = "Crear Usuario";
+$pageTitle = "Crear Categoría";
 require __DIR__ . '/../layouts/header.php';
 ?>
 
@@ -7,10 +7,52 @@ require __DIR__ . '/../layouts/header.php';
 
     <div class="bg-white w-full max-w-5xl mx-auto rounded-lg shadow-lg p-8">
 
-        <h3 class="text-xl font-semibold mb-6">Crear categoria</h3>
+        <h3 class="text-xl font-semibold mb-6">Crear categoría</h3>
 
-        <form action="index.php?c=categoria&a=guardar" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form action="index.php?c=categorias&a=guardar" method="POST"
+              class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
+            <!-- Nombre -->
+            <div class="md:col-span-2">
+                <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">
+                    Nombre de la categoría
+                </label>
+                <input type="text" id="nombre" name="nombre" required
+                       class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+
+            <!-- Descripción -->
+            <div class="md:col-span-2">
+                <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1">
+                    Descripción
+                </label>
+                <textarea id="descripcion" name="descripcion" rows="3"
+                          class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+            </div>
+
+            <!-- Estado -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Estado
+                </label>
+                <select name="estado"
+                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <option value="activo" selected>Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                </select>
+            </div>
+
+            <!-- Botones -->
+            <div class="md:col-span-2 flex justify-end gap-3 mt-4">
+                <a href="index.php?c=categorias&a=listar"
+                   class="px-4 py-2 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100">
+                    Cancelar
+                </a>
+                <button type="submit"
+                        class="px-4 py-2 text-sm rounded bg-green-600 text-white hover:bg-green-700">
+                    Guardar
+                </button>
+            </div>
         </form>
 
     </div>

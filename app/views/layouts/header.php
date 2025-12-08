@@ -21,11 +21,8 @@ $pageTitle = $pageTitle ?? 'Dashboard - Yahuarcocha';
     <div class="flex h-screen">
         <!-- Sidebar -->
         <?php
-            if ($rolUsuario === 'admin' || $rolUsuario === 'super_admin') {
                 include __DIR__ . '/navbar.php';
-            } elseif ($rolUsuario === 'proveedor') {
-                include __DIR__ . '/navbar2.php';
-            }
+
         ?>
 
         <!-- Main Content -->

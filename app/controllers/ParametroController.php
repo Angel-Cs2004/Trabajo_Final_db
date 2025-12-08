@@ -23,11 +23,7 @@ class ParametrosController
             exit;
         }
 
-        // Ahora tus roles son: super_admin, admin_negocio, operador_negocio, invitado_reportes
-        if ($_SESSION['rol'] !== 'admin_negocio' && $_SESSION['rol'] !== 'super_admin') {
-            header("Location: index.php?c=home&a=dashboardProveedor");
-            exit;
-        }
+        
     }
 
     // Listar parámetros
@@ -66,6 +62,7 @@ class ParametrosController
         // en el form puedes llamarlo 'categoria' o 'categoria_admin'; dejo ambos por compatibilidad
         $categoria = trim($_POST['categoria'] ?? ($_POST['categoria_admin'] ?? ''));
         $formatos  = trim($_POST['formatos_validos'] ?? '');
+
 
         // Validación mínima
         if ($etiqueta === '' || $ancho <= 0 || $alto <= 0 || $categoria === '' || $formatos === '') {
@@ -119,6 +116,7 @@ class ParametrosController
         $alto      = intval($_POST['alto_px'] ?? 0);
         $categoria = trim($_POST['categoria'] ?? ($_POST['categoria_admin'] ?? ''));
         $formatos  = trim($_POST['formatos_validos'] ?? '');
+
 
         if ($id <= 0) {
             header("Location: index.php?c=parametros&a=index");

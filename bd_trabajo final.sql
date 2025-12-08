@@ -60,6 +60,9 @@ CREATE TABLE negocios (
     hora_apertura   TIME NOT NULL,
     hora_cierre     TIME NOT NULL,
     id_propietario  INT NOT NULL,
+    CONSTRAINT unq_negocio_propietario_nombre
+        UNIQUE (id_propietario, nombre),
+        
     FOREIGN KEY(id_propietario) REFERENCES usuarios(id_usuario),
     CONSTRAINT check_horario CHECK (hora_cierre > hora_apertura)
 );
@@ -119,9 +122,12 @@ INSERT INTO tags (modulos) VALUES
 ('rol'),
 ('imagen'),
 ('categoria'),
-('negocio'),
-('producto'),
-('reporte');
+('negocio_gen'),
+('negocio_prop'),
+('producto_gen'),
+('producto_prop'),
+('reporte_gen'),
+('reporte_prop');
 
 -- =========================================
 -- PERMISOS (tipo de operación)
@@ -361,5 +367,113 @@ BEGIN
       AND u.estado = 'activo'
     LIMIT 1;
 END $$
+
+DELIMITER ;
+INSERT INTO negocios (nombre, descripcion, estado, imagen_logo, hora_apertura, hora_cierre, id_propietario) VALUES
+('Café Angelo', 'Cafetería de especialidad y postres', 'activo', NULL, '08:00:00', '18:00:00', 1),
+('Pizzería Gen', 'Pizzas artesanales y pastas',        'activo', NULL, '12:00:00', '23:00:00', 1),
+('Mini Market Angelo', 'Tienda de abarrotes y snacks', 'activo', NULL, '09:00:00', '21:00:00', 1);
+
+INSERT INTO productos (nombre, precio, url_imagen, estado, id_categoria, id_negocio) VALUES
+-- =========================
+-- 1. Restaurante Doña Pacha
+-- =========================
+('Papa a la huancaína',       10.00, NULL, 'activo', 1, 1),
+('Ocopa arequipeña',          11.00, NULL, 'activo', 1, 1),
+('Ají de gallina',            18.50, NULL, 'activo', 2, 1),
+('Seco de res con frejoles',  22.00, NULL, 'activo', 2, 1),
+('Chicha morada vaso',         4.00, NULL, 'activo', 3, 1),
+
+-- =========================
+-- 2. Pollería El Buen Sabor
+-- =========================
+('1/4 de pollo con papas',    20.00, NULL, 'activo', 2, 2),
+('1/2 pollo familiar',        36.00, NULL, 'activo', 2, 2),
+('Pollo broaster (porción)',  18.00, NULL, 'activo', 2, 2),
+('Ensalada criolla',           7.00, NULL, 'activo', 1, 2),
+('Gaseosa 1.5L',              10.00, NULL, 'activo', 3, 2),
+
+-- =========================
+-- 3. Cevichería El Marino
+-- =========================
+('Ceviche mixto',             30.00, NULL, 'activo', 2, 3),
+('Ceviche de pota',           22.00, NULL, 'activo', 2, 3),
+('Jalea marina',              32.00, NULL, 'activo', 2, 3),
+('Leche de tigre vaso',       12.00, NULL, 'activo', 1, 3),
+('Limonada jarra',            15.00, NULL, 'activo', 3, 3),
+
+-- =========================
+-- 4. Café Angelo
+-- =========================
+('Americano',                  7.00, NULL, 'activo', 3, 4),
+('Capuccino',                 10.00, NULL, 'activo', 3, 4),
+('Latte de vainilla',         11.50, NULL, 'activo', 3, 4),
+('Cheesecake de frutos rojos',14.00, NULL, 'activo', 4, 4),
+('Brownie con helado',        12.00, NULL, 'activo', 4, 4),
+
+-- =========================
+-- 5. Pizzería Gen
+-- =========================
+('Pizza margarita personal',  18.00, NULL, 'activo', 2, 5),
+('Pizza pepperoni mediana',   32.00, NULL, 'activo', 2, 5),
+('Pizza cuatro quesos grande',45.00, NULL, 'activo', 2, 5),
+('Pan de ajo (porción)',       9.00, NULL, 'activo', 1, 5),
+('Gaseosa personal',           5.00, NULL, 'activo', 3, 5),
+
+-- =========================
+-- 6. Mini Market Angelo
+-- =========================
+('Agua sin gas 625ml',         3.50, NULL, 'activo', 3, 6),
+('Galletas de vainilla',       2.50, NULL, 'activo', 1, 6),
+('Papas fritas en bolsa',      4.00, NULL, 'activo', 1, 6),
+('Chocolate de leche barra',   3.00, NULL, 'activo', 4, 6),
+('Energizante lata',           7.50, NULL, 'activo', 3, 6);
+
+DELIMITER $$
+
+CREATE TRIGGER trg_negocios_max2_mismo_nombre
+BEFORE INSERT ON negocios
+FOR EACH ROW
+BEGIN
+    DECLARE v_count INT;
+
+    SELECT COUNT(*)
+    INTO v_count
+    FROM negocios
+    WHERE id_propietario = NEW.id_propietario
+      AND nombre = NEW.nombre;
+
+    IF v_count >= 2 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Máximo 2 negocios con el mismo nombre por propietario';
+    END IF;
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER trg_negocios_max2_mismo_nombre_upd
+BEFORE UPDATE ON negocios
+FOR EACH ROW
+BEGIN
+    DECLARE v_count INT;
+
+    -- Solo validamos si cambia nombre o propietario
+    IF NEW.nombre <> OLD.nombre OR NEW.id_propietario <> OLD.id_propietario THEN
+
+        SELECT COUNT(*)
+        INTO v_count
+        FROM negocios
+        WHERE id_propietario = NEW.id_propietario
+          AND nombre = NEW.nombre
+          AND id_negocio <> OLD.id_negocio;
+
+        IF v_count >= 2 THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Máximo 2 negocios con el mismo nombre por propietario';
+        END IF;
+    END IF;
+END$$
 
 DELIMITER ;

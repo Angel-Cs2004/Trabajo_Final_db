@@ -32,7 +32,7 @@ class CategoriasController
         $nombre      = trim($_POST['nombre'] ?? '');
         $descripcion = trim($_POST['descripcion'] ?? '');
         // por defecto las creamos 'activo'
-        $estado      = $_POST['estado'] ?? 'activo';
+        $estado      = $_POST['estado'] ?? 'inactivo';
 
         $categoriaModel = new Categoria($this->conn);
         $categoriaModel->crearCategoria($nombre, $descripcion, $estado);
@@ -70,7 +70,7 @@ class CategoriasController
         $id_categoria = (int) ($_POST['id_categoria'] ?? 0);
         $nombre       = trim($_POST['nombre'] ?? '');
         $descripcion  = trim($_POST['descripcion'] ?? '');
-        $estado       = $_POST['estado'] ?? 'activo';
+        $estado       = $_POST['estado'] ?? 'inactivo';
 
         $categoriaModel = new Categoria($this->conn);
         $categoriaModel->editarCategoria(

@@ -14,23 +14,48 @@ class Negocio
         $sql = "SELECT n.*, u.nombre AS propietario
                 FROM negocios n
                 INNER JOIN usuarios u ON n.id_propietario = u.id_usuario
-                WHERE n.estado = 'activo'
                 ORDER BY n.nombre DESC";
 
         $result = $this->conn->query($sql);
         if (!$result) {
             return [];
         }
-        return $result->fetch_all(MYSQLI_ASSOC);
+
+        $negocios = $result->fetch_all(MYSQLI_ASSOC);
+
+        // Calculamos disponibilidad en PHP
+        $ahora = new DateTime('now', new DateTimeZone('America/Lima'));
+        $horaActual = $ahora->format('H:i:s');
+
+        foreach ($negocios as &$negocio) {
+            $estadoBD      = $negocio['estado'] ?? 'inactivo';
+            $horaApertura  = $negocio['hora_apertura'] ?? '00:00:00';
+            $horaCierre    = $negocio['hora_cierre'] ?? '00:00:00';
+
+            if (
+                $estadoBD === 'activo' &&
+                $horaApertura <= $horaActual &&
+                $horaCierre   > $horaActual
+            ) {
+                $negocio['estado_disponibilidad'] = 'abierto';
+            } else {
+                $negocio['estado_disponibilidad'] = 'cerrado';
+            }
+        }
+        unset($negocio); // por seguridad de referencia
+
+        return $negocios;
     }
+
+
+
 
     public function obtenerPorPropietario(int $idPropietario): array
     {
         $sql = "SELECT n.*, u.nombre AS propietario
                 FROM negocios n
                 INNER JOIN usuarios u ON n.id_propietario = u.id_usuario
-                WHERE n.estado = 'activo'
-                  AND n.id_propietario = ?";
+                WHERE  n.id_propietario = ?";
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) {
             return [];
