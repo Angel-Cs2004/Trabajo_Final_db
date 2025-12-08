@@ -15,7 +15,7 @@ CREATE TABLE usuarios (
     estado          ENUM('activo','inactivo') DEFAULT 'activo'
 );
 
-CREATE TABLE roles (
+CREATE TABLE roles (	
     id_rol        INT AUTO_INCREMENT PRIMARY KEY,
     nombre        VARCHAR(100) UNIQUE NOT NULL,
     estado        ENUM('activo','inactivo') DEFAULT 'activo'

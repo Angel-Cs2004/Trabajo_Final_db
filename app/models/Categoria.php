@@ -11,97 +11,81 @@ class Categoria
 
     public function obtenerTodas(): array
     {
-        $sql = "SELECT id_categoria, nombre, descripcion, estado
+        $sql = "SELECT id_categoria, nombre, descripcion, activo 
                 FROM categorias
                 ORDER BY nombre ASC";
+
         $result = $this->conn->query($sql);
-        return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+        if (!$result) {
+            return [];
+        }
+
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function obtenerTodasActivas(): array
+    public function obtenerActivas(): array
     {
-        $sql = "SELECT id_categoria, nombre, descripcion, estado
+        $sql = "SELECT id_categoria, nombre, descripcion, activo 
                 FROM categorias
-                WHERE estado = 'activo'
+                WHERE activo = 1
                 ORDER BY nombre ASC";
+
         $result = $this->conn->query($sql);
-        return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+        if (!$result) {
+            return [];
+        }
+
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function obtenerPorId(int $id_categoria): ?array
+    public function obtenerPorId(int $id): ?array
     {
-        $sql = "SELECT id_categoria, nombre, descripcion, estado
+        $sql = "SELECT id_categoria, nombre, descripcion, activo
                 FROM categorias
-                WHERE id_categoria = ?";
+                WHERE id_categoria = ?
+                LIMIT 1";
+
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) return null;
 
-        $stmt->bind_param("i", $id_categoria);
+        $stmt->bind_param("i", $id);
         $stmt->execute();
-        $result = $stmt->get_result();
-        $categoria = $result->fetch_assoc();
+        $res = $stmt->get_result();
+        $fila = $res ? $res->fetch_assoc() : null;
+
         $stmt->close();
 
-        return $categoria ?: null;
+        return $fila ?: null;
     }
 
-    public function crearCategoria(
-        string $nombre,
-        ?string $descripcion = null,
-        string $estado = 'activo'
-    ): bool {
-        $sql = "INSERT INTO categorias (nombre, descripcion, estado)
+    public function crear(string $nombre, ?string $descripcion, int $activo = 1): bool
+    {
+        $sql = "INSERT INTO categorias (nombre, descripcion, activo)
                 VALUES (?, ?, ?)";
+
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) return false;
 
-        $stmt->bind_param("sss", $nombre, $descripcion, $estado);
+        $stmt->bind_param("ssi", $nombre, $descripcion, $activo);
         $ok = $stmt->execute();
         $stmt->close();
+
         return $ok;
     }
 
-    public function editarCategoria(
-        int $id_categoria,
-        string $nombre,
-        ?string $descripcion,
-        string $estado
-    ): bool {
-        $sql = "UPDATE categorias
-                SET nombre = ?, descripcion = ?, estado = ?
-                WHERE id_categoria = ?";
-        $stmt = $this->conn->prepare($sql);
-        if (!$stmt) return false;
-
-        $stmt->bind_param("sssi", $nombre, $descripcion, $estado, $id_categoria);
-        $ok = $stmt->execute();
-        $stmt->close();
-        return $ok;
-    }
-
-    public function desactivarCategoria(int $id_categoria): bool
+    public function actualizar(int $id, string $nombre, ?string $descripcion, int $activo): bool
     {
         $sql = "UPDATE categorias
-                SET estado = 'inactivo'
+                SET nombre = ?, descripcion = ?, activo = ?
                 WHERE id_categoria = ?";
+
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) return false;
 
-        $stmt->bind_param("i", $id_categoria);
+        $stmt->bind_param("ssii", $nombre, $descripcion, $activo, $id);
         $ok = $stmt->execute();
         $stmt->close();
-        return $ok;
-    }
 
-    public function eliminarCategoria(int $id_categoria): bool
-    {
-        $sql = "DELETE FROM categorias WHERE id_categoria = ?";
-        $stmt = $this->conn->prepare($sql);
-        if (!$stmt) return false;
-
-        $stmt->bind_param("i", $id_categoria);
-        $ok = $stmt->execute();
-        $stmt->close();
         return $ok;
     }
 }
