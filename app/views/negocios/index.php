@@ -10,7 +10,7 @@ require __DIR__ . '/../layouts/header.php';
         <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <div class="flex items-center">
                 <div class="bg-green-100 p-2 rounded mr-3"></div>
-                <h1 class="text-xl font-semibold text-gray-800">Administrar negocios</h1>
+                <h1 class="text-xl font-semibold text-gray-800">Administrar Negocios</h1>
             </div>
 
             <a href="index.php?c=negocio&a=crear"
@@ -41,35 +41,41 @@ require __DIR__ . '/../layouts/header.php';
 
         <!-- Tabla -->
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="w-full">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teléfono</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Negocio</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Propietario</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teléfono</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Disponibilidad</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                     </tr>
                 </thead>
+
                 <tbody id="negociosTableBody">
                     <?php if (!empty($negocios)): ?>
-                        <?php foreach ($negocios as $n): ?>
+                        <?php foreach ($negocios as $neg): ?>
                             <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-3"><?= htmlspecialchars($n['nombre'] ?? '-') ?></td>
-                                <td class="px-6 py-3"><?= htmlspecialchars($n['telefono'] ?? '-') ?></td>
-                                <td class="px-6 py-3"><?= htmlspecialchars($n['propietario'] ?? '-') ?></td>
+                                <td class="px-6 py-3"><?= htmlspecialchars($neg['nombre']) ?></td>
+                                <td class="px-6 py-3"><?= htmlspecialchars($neg['propietario'] ?? '-') ?></td>
+                                <td class="px-6 py-3"><?= htmlspecialchars($neg['telefono'] ?? '-') ?></td>
                                 <td class="px-6 py-3">
                                     <span class="px-2 py-1 text-xs rounded
-                                        <?= ($n['activo'] ?? 0) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
-                                        <?= htmlspecialchars($n['estado_disponibilidad'] ?? 'cerrado') ?>
+                                        <?= ($neg['activo'] ?? 0) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
+                                        <?= ($neg['activo'] ?? 0) ? 'Activo' : 'Inactivo' ?>
                                     </span>
                                 </td>
                                 <td class="px-6 py-3">
-                                    <?= htmlspecialchars($n['fecha_creacion'] ?? '-') ?>
+                                    <span class="px-2 py-1 text-xs rounded
+                                        <?= ($neg['estado_disponibilidad'] ?? '') === 'abierto'
+                                            ? 'bg-green-100 text-green-800'
+                                            : 'bg-yellow-100 text-yellow-800' ?>">
+                                        <?= htmlspecialchars($neg['estado_disponibilidad'] ?? '-') ?>
+                                    </span>
                                 </td>
                                 <td class="px-6 py-3">
-                                    <a href="index.php?c=negocio&a=editar&id=<?= $n['id_negocio'] ?>"
+                                    <a href="index.php?c=negocio&a=editar&id=<?= $neg['id_negocio'] ?>"
                                        class="bg-purple-900 hover:bg-purple-800 text-white px-3 py-1 rounded text-xs">
                                         Editar
                                     </a>

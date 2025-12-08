@@ -1,77 +1,92 @@
 <?php
 
-require_once __DIR__ . '/../models/negocio.php';
-require_once __DIR__ . '/../models/usuarios.php';
+require_once __DIR__ . '/../models/Negocio.php';
+require_once __DIR__ . '/../models/Usuarios.php';
 
 class NegocioController
 {
     private mysqli $conn;
     private Negocio $negocioModel;
+    private Usuarios $usuariosModel;
 
     public function __construct(mysqli $conn)
     {
         $this->conn = $conn;
         $this->negocioModel = new Negocio($conn);
+        $this->usuariosModel = new Usuarios($conn);
 
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+
+        if (!isset($_SESSION['id_usuario'])) {
+            header('Location: index.php?c=auth&a=login');
+            exit;
+        }
     }
 
+    /**
+     * Listado:
+     * - admin / super_admin -> todos los negocios
+     * - proveedor          -> sólo sus negocios
+     */
     public function index(): void
     {
-        $rol = $_SESSION['rol'] ?? null;
-        $idUsuario = $_SESSION['id_usuario'] ?? null;
+        $rol = $_SESSION['rol'] ?? '';
+        $idUsuario = (int)($_SESSION['id_usuario'] ?? 0);
 
-        if ($rol === 'admin' || $rol === 'super_admin') {
-            $negocios = $this->negocioModel->obtenerTodos();
-        } elseif ($rol === 'proveedor' && $idUsuario) {
-            $negocios = $this->negocioModel->obtenerPorPropietario((int)$idUsuario);
+        if ($rol === 'proveedor') {
+            $negocios = $this->negocioModel->obtenerPorPropietario($idUsuario);
         } else {
-            $negocios = [];
+            $negocios = $this->negocioModel->obtenerTodos();
         }
 
         require __DIR__ . '/../views/negocios/index.php';
     }
 
-    public function listar(): void
+    /**
+     * Vista para "Mi negocio" / "Mis negocios"
+     */
+    public function perfil(): void
     {
-        // alias por si usas listar en el router
-        $this->index();
+        $idUsuario = (int)($_SESSION['id_usuario'] ?? 0);
+        $negocios = $this->negocioModel->obtenerPorPropietario($idUsuario);
+
+        require __DIR__ . '/../views/negocios/perfil.php';
     }
 
     public function crear(): void
     {
-        $usuariosModel = new Usuarios($this->conn);
-        $usuarios = $usuariosModel->obtenerTodos();
-
+        // Usamos el modelo Usuarios que ya lista usuarios con rol
+        $usuarios = $this->usuariosModel->obtenerTodos();
         require __DIR__ . '/../views/negocios/crear.php';
     }
 
     public function guardar(): void
     {
-        $nombre = trim($_POST['nombre'] ?? '');
-        $telefono = trim($_POST['telefono'] ?? '');
-        $descripcion = trim($_POST['descripcion'] ?? '');
-        $idPropietario = isset($_POST['id_propietario']) ? (int) $_POST['id_propietario'] : 0;
+        $nombre       = trim($_POST['nombre'] ?? '');
+        $descripcion  = trim($_POST['descripcion'] ?? '');
+        $telefono     = trim($_POST['telefono'] ?? '');
+        $idPropietario = (int)($_POST['id_propietario'] ?? 0);
 
-        // Checkbox "Activo" -> controlamos dos cosas:
-        $activo = isset($_POST['estado_disponibilidad']) ? 1 : 0;
-        $estadoDisponibilidad = $activo ? 'abierto' : 'cerrado';
+        // Checkbox "Activo" (estado_disponibilidad + activo)
+        $checked = isset($_POST['estado_disponibilidad']);
+        $estadoDisponibilidad = $checked ? 'abierto' : 'cerrado';
+        $activo = $checked ? 1 : 0;
 
         if ($nombre === '' || $idPropietario <= 0) {
-            header('Location: index.php?c=negocio&a=listar');
+            header('Location: index.php?c=negocio&a=crear');
             exit;
         }
 
-        $this->negocioModel->crear(
+        $ok = $this->negocioModel->crear(
             $nombre,
-            $descripcion,
-            $telefono,
-            null, // imagen_logo por ahora
+            $descripcion ?: null,
+            $telefono ?: null,
+            null,                   // imagen_logo (por ahora null)
             $estadoDisponibilidad,
-            $activo,
-            $idPropietario
+            $idPropietario,
+            $activo
         );
 
         header('Location: index.php?c=negocio&a=listar');
@@ -80,7 +95,7 @@ class NegocioController
 
     public function editar(): void
     {
-        $idNegocio = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $idNegocio = (int)($_GET['id'] ?? 0);
         if ($idNegocio <= 0) {
             header('Location: index.php?c=negocio&a=listar');
             exit;
@@ -92,29 +107,23 @@ class NegocioController
             exit;
         }
 
-        $usuariosModel = new Usuarios($this->conn);
-        $usuarios = $usuariosModel->obtenerTodos();
-
+        $usuarios = $this->usuariosModel->obtenerTodos();
         require __DIR__ . '/../views/negocios/editar.php';
     }
 
     public function actualizar(): void
     {
-        $idNegocio = isset($_POST['id_negocio']) ? (int) $_POST['id_negocio'] : 0;
-        if ($idNegocio <= 0) {
-            header('Location: index.php?c=negocio&a=listar');
-            exit;
-        }
+        $idNegocio    = (int)($_POST['id_negocio'] ?? 0);
+        $nombre       = trim($_POST['nombre'] ?? '');
+        $descripcion  = trim($_POST['descripcion'] ?? '');
+        $telefono     = trim($_POST['telefono'] ?? '');
+        $idPropietario = (int)($_POST['id_propietario'] ?? 0);
 
-        $nombre = trim($_POST['nombre'] ?? '');
-        $telefono = trim($_POST['telefono'] ?? '');
-        $descripcion = trim($_POST['descripcion'] ?? '');
-        $idPropietario = !empty($_POST['id_propietario']) ? (int) $_POST['id_propietario'] : null;
+        $checked = isset($_POST['estado_disponibilidad']);
+        $estadoDisponibilidad = $checked ? 'abierto' : 'cerrado';
+        $activo = $checked ? 1 : 0;
 
-        $activo = isset($_POST['estado_disponibilidad']) ? 1 : 0;
-        $estadoDisponibilidad = $activo ? 'abierto' : 'cerrado';
-
-        if ($nombre === '') {
+        if ($idNegocio <= 0 || $nombre === '' || $idPropietario <= 0) {
             header('Location: index.php?c=negocio&a=listar');
             exit;
         }
@@ -122,9 +131,9 @@ class NegocioController
         $this->negocioModel->actualizar(
             $idNegocio,
             $nombre,
-            $descripcion,
-            $telefono,
-            null,
+            $descripcion ?: null,
+            $telefono ?: null,
+            null,                 // imagen_logo (por ahora)
             $estadoDisponibilidad,
             $activo,
             $idPropietario
@@ -132,17 +141,5 @@ class NegocioController
 
         header('Location: index.php?c=negocio&a=listar');
         exit;
-    }
-
-    public function perfil(): void
-    {
-        $idUsuario = $_SESSION['id_usuario'] ?? null;
-        if (!$idUsuario) {
-            header('Location: index.php?c=auth&a=login');
-            exit;
-        }
-
-        $negocios = $this->negocioModel->obtenerPorPropietario((int)$idUsuario);
-        require __DIR__ . '/../views/negocios/perfil.php';
     }
 }

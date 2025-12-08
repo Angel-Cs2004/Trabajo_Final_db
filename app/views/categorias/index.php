@@ -10,7 +10,7 @@ require __DIR__ . '/../layouts/header.php';
         <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <div class="flex items-center">
                 <div class="bg-green-100 p-2 rounded mr-3"></div>
-                <h1 class="text-xl font-semibold text-gray-800">Administrar categorías</h1>
+                <h1 class="text-xl font-semibold text-gray-800">Administrar Categorías</h1>
             </div>
 
             <a href="index.php?c=categorias&a=crear"
@@ -41,14 +41,16 @@ require __DIR__ . '/../layouts/header.php';
 
         <!-- Tabla -->
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="w-full">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                     </tr>
                 </thead>
+
                 <tbody id="tableBody">
                     <?php if (!empty($categorias)): ?>
                         <?php foreach ($categorias as $cat): ?>
@@ -57,15 +59,21 @@ require __DIR__ . '/../layouts/header.php';
                                 <td class="px-6 py-3"><?= htmlspecialchars($cat['descripcion'] ?? '-') ?></td>
                                 <td class="px-6 py-3">
                                     <span class="px-2 py-1 text-xs rounded
-                                        <?= ($cat['activo'] ?? 0) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
-                                        <?= ($cat['activo'] ?? 0) ? 'Activa' : 'Inactiva' ?>
+                                        <?= $cat['activo'] ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
+                                        <?= $cat['activo'] ? 'Activa' : 'Inactiva' ?>
                                     </span>
+                                </td>
+                                <td class="px-6 py-3">
+                                    <a href="index.php?c=categorias&a=editar&id=<?= $cat['id_categoria'] ?>"
+                                       class="bg-purple-900 hover:bg-purple-800 text-white px-3 py-1 rounded text-xs">
+                                        Editar
+                                    </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="3" class="text-center text-gray-500 py-4">
+                            <td colspan="4" class="text-center text-gray-500 py-4">
                                 No se encontraron categorías.
                             </td>
                         </tr>

@@ -20,29 +20,30 @@ class CategoriasController
     public function listar(): void
     {
         $categorias = $this->categoriaModel->obtenerTodas();
-        require __DIR__ . '/../views/categoria/index.php';
+        require __DIR__ . '/../views/categorias/index.php';
     }
 
     public function crear(): void
     {
-        require __DIR__ . '/../views/categoria/crear.php';
+        require __DIR__ . '/../views/categorias/crear.php';
     }
 
     public function guardar(): void
     {
-        $nombre = trim($_POST['nombre'] ?? '');
-        $descripcion = trim($_POST['descripcion'] ?? '');
-        $activo = isset($_POST['activo']) ? 1 : 0;
+        $nombre       = trim($_POST['nombre'] ?? '');
+        $descripcion  = trim($_POST['descripcion'] ?? '');
+        $activo       = isset($_POST['activo']) ? 1 : 0;
 
-        if ($nombre !== '') {
-            $this->categoriaModel->crear($nombre, $descripcion, $activo);
+        if ($nombre === '') {
+            header('Location: index.php?c=categorias&a=crear');
+            exit;
         }
 
+        $this->categoriaModel->crear($nombre, $descripcion ?: null, $activo);
         header('Location: index.php?c=categorias&a=listar');
         exit;
     }
 
-    // (OPCIONAL) editar / actualizar:
     public function editar(): void
     {
         $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
@@ -57,20 +58,22 @@ class CategoriasController
             exit;
         }
 
-        require __DIR__ . '/../views/categoria/editar.php';
+        require __DIR__ . '/../views/categorias/editar.php';
     }
 
     public function actualizar(): void
     {
-        $id = isset($_POST['id_categoria']) ? (int) $_POST['id_categoria'] : 0;
-        $nombre = trim($_POST['nombre'] ?? '');
+        $id          = (int)($_POST['id_categoria'] ?? 0);
+        $nombre      = trim($_POST['nombre'] ?? '');
         $descripcion = trim($_POST['descripcion'] ?? '');
-        $activo = isset($_POST['activo']) ? 1 : 0;
+        $activo      = isset($_POST['activo']) ? 1 : 0;
 
-        if ($id > 0 && $nombre !== '') {
-            $this->categoriaModel->actualizar($id, $nombre, $descripcion, $activo);
+        if ($id <= 0 || $nombre === '') {
+            header('Location: index.php?c=categorias&a=listar');
+            exit;
         }
 
+        $this->categoriaModel->actualizar($id, $nombre, $descripcion ?: null, $activo);
         header('Location: index.php?c=categorias&a=listar');
         exit;
     }

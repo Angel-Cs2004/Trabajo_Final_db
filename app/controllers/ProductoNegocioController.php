@@ -2,69 +2,73 @@
 
 require_once __DIR__ . '/../models/Producto.php';
 require_once __DIR__ . '/../models/Categoria.php';
-require_once __DIR__ . '/../models/negocio.php';
+require_once __DIR__ . '/../models/Negocio.php';
 
 class ProductoNegocioController
 {
     private mysqli $conn;
     private Producto $productoModel;
+    private Categoria $categoriaModel;
+    private Negocio $negocioModel;
 
     public function __construct(mysqli $conn)
     {
         $this->conn = $conn;
-        $this->productoModel = new Producto($conn);
+        $this->productoModel  = new Producto($conn);
+        $this->categoriaModel = new Categoria($conn);
+        $this->negocioModel   = new Negocio($conn);
 
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-    }
 
-    public function listar(): void
-    {
-        $idUsuario = $_SESSION['id_usuario'] ?? null;
-        if (!$idUsuario) {
+        if (!isset($_SESSION['id_usuario'])) {
             header('Location: index.php?c=auth&a=login');
             exit;
         }
+    }
 
-        $productos = $this->productoModel->obtenerPorPropietario((int)$idUsuario);
+    /**
+     * Mis productos:
+     * - proveedor: productos de SUS negocios
+     * - admin/super_admin: igual que arriba (pueden ver todo pero en este módulo
+     *   lo tratamos como "mis productos" por propietario de sesión).
+     */
+    public function listar(): void
+    {
+        $idUsuario = (int)($_SESSION['id_usuario'] ?? 0);
+        $productos = $this->productoModel->obtenerPorPropietario($idUsuario);
+
         require __DIR__ . '/../views/producto/negocio/index.php';
     }
 
     public function crear(): void
     {
-        $idUsuario = $_SESSION['id_usuario'] ?? null;
-        if (!$idUsuario) {
-            header('Location: index.php?c=auth&a=login');
-            exit;
+        $idUsuario = (int)($_SESSION['id_usuario'] ?? 0);
+        $rol = $_SESSION['rol'] ?? '';
+
+        // Si es proveedor, solo sus negocios. Si es admin, todos.
+        if ($rol === 'proveedor') {
+            $negocios = $this->negocioModel->obtenerPorPropietario($idUsuario);
+        } else {
+            $negocios = $this->negocioModel->obtenerTodos();
         }
 
-        $categoriaModel = new Categoria($this->conn);
-        $negocioModel   = new Negocio($this->conn);
-
-        $categorias = $categoriaModel->obtenerActivas();
-        $negocios   = $negocioModel->obtenerPorPropietario((int)$idUsuario);
+        $categorias = $this->categoriaModel->obtenerActivas();
 
         require __DIR__ . '/../views/producto/negocio/crear.php';
     }
 
     public function guardar(): void
     {
-        $idUsuario = $_SESSION['id_usuario'] ?? null;
-        if (!$idUsuario) {
-            header('Location: index.php?c=auth&a=login');
-            exit;
-        }
+        $nombre     = trim($_POST['nombre'] ?? '');
+        $codigo     = trim($_POST['codigo'] ?? '');
+        $precio     = (float)($_POST['precio'] ?? 0);
+        $urlImagen  = trim($_POST['url_imagen'] ?? '');
+        $idCategoria = (int)($_POST['id_categoria'] ?? 0);
+        $idNegocio   = (int)($_POST['id_negocio'] ?? 0);
 
-        $nombre   = trim($_POST['nombre'] ?? '');
-        $codigo   = trim($_POST['codigo'] ?? '');
-        $precio   = (float) ($_POST['precio'] ?? 0);
-        $url      = trim($_POST['url_imagen'] ?? '');
-        $idCat    = isset($_POST['id_categoria']) ? (int) $_POST['id_categoria'] : 0;
-        $idNeg    = isset($_POST['id_negocio']) ? (int) $_POST['id_negocio'] : 0;
-        $activo   = isset($_POST['activo']) ? 1 : 0;
-
-        if ($nombre === '' || $codigo === '' || $idCat <= 0 || $idNeg <= 0) {
+        if ($nombre === '' || $codigo === '' || $precio <= 0 || $idCategoria <= 0 || $idNegocio <= 0) {
             header('Location: index.php?c=productoNegocio&a=crear');
             exit;
         }
@@ -73,10 +77,9 @@ class ProductoNegocioController
             $nombre,
             $codigo,
             $precio,
-            $url !== '' ? $url : null,
-            $idCat,
-            $idNeg,
-            $activo
+            $urlImagen ?: null,
+            $idCategoria,
+            $idNegocio
         );
 
         header('Location: index.php?c=productoNegocio&a=listar');
