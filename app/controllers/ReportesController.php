@@ -87,3 +87,117 @@ class ReportesController
         require __DIR__ . '/../views/Reportes/Negocio/index.php';
     }
 }
+<?php
+// app/controllers/ReportesController.php
+
+require_once __DIR__ . '/../models/Negocio.php';
+
+class ReportesController
+{
+    private mysqli $conn;
+
+    public function __construct(mysqli $conn)
+    {
+        $this->conn = $conn;
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['id_usuario'])) {
+            header('Location: index.php?c=auth&a=login');
+            exit;
+        }
+    }
+
+    /**
+     * Reporte general de productos por rango de precios (usa SP sp_reporte_productos_rango_precio)
+     */
+    public function ReporteGeneral(): void
+    {
+        $negocioModel = new Negocio($this->conn);
+        $negocios     = $negocioModel->obtenerTodos();
+
+        $resultados = [];
+
+        $filtros = [
+            'precio_min' => '',
+            'precio_max' => '',
+            'id_negocio' => 0,
+        ];
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $precioMin = isset($_POST['precio_min']) ? (float)$_POST['precio_min'] : 0;
+            $precioMax = isset($_POST['precio_max']) ? (float)$_POST['precio_max'] : 0;
+            $idNegocio = isset($_POST['id_negocio']) ? (int)$_POST['id_negocio'] : 0;
+
+            $filtros['precio_min'] = $precioMin;
+            $filtros['precio_max'] = $precioMax;
+            $filtros['id_negocio'] = $idNegocio;
+
+            if ($precioMin >= 0 && $precioMax > 0 && $precioMax >= $precioMin) {
+                $stmt = $this->conn->prepare("CALL sp_reporte_productos_rango_precio(?, ?, ?)");
+                if ($stmt) {
+                    $stmt->bind_param('ddi', $precioMin, $precioMax, $idNegocio);
+                    $stmt->execute();
+
+                    $res = $stmt->get_result();
+                    if ($res) {
+                        $resultados = $res->fetch_all(MYSQLI_ASSOC);
+                    }
+
+                    $stmt->close();
+
+                    // limpieza de resultados múltiples por usar SP
+                    while ($this->conn->more_results() && $this->conn->next_result()) {;}
+                }
+            }
+        }
+
+        require __DIR__ . '/../views/reportes/general/index.php';
+    }
+
+    /**
+     * Reporte de productos por negocio (usa SP sp_reporte_productos_por_negocio)
+     */
+    public function ReporteNegocio(): void
+    {
+        $negocioModel = new Negocio($this->conn);
+
+        $idUsuario = (int)($_SESSION['id_usuario'] ?? 0);
+        $rol       = $_SESSION['rol'] ?? '';
+
+        // Si quisieras filtrar por rol, aquí lo puedes ajustar.
+        // Por ahora dejamos sencillo: admin ve todos, los demás igual.
+        $negocios = $negocioModel->obtenerTodos();
+        // Si quieres que sólo el propietario vea sus negocios:
+        // $negocios = $negocioModel->obtenerPorPropietario($idUsuario);
+
+        $idNegocioSeleccionado = 0;
+        $productos             = [];
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $idNegocioSeleccionado = isset($_POST['id_negocio']) ? (int)$_POST['id_negocio'] : 0;
+
+            if ($idNegocioSeleccionado > 0) {
+                $stmt = $this->conn->prepare("CALL sp_reporte_productos_por_negocio(?)");
+                if ($stmt) {
+                    $stmt->bind_param('i', $idNegocioSeleccionado);
+                    $stmt->execute();
+
+                    $res = $stmt->get_result();
+                    if ($res) {
+                        $productos = $res->fetch_all(MYSQLI_ASSOC);
+                    }
+
+                    $stmt->close();
+
+                    // limpieza de resultados múltiples por usar SP
+                    while ($this->conn->more_results() && $this->conn->next_result()) {;}
+                }
+            }
+        }
+
+        require __DIR__ . '/../views/reportes/negocio/index.php';
+    }
+}
