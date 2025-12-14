@@ -220,19 +220,32 @@ case 'productoGeneral':
     // REPORTES
 
     case 'reporte':
-        $controller = new ReportesController($conn);
+    $controller = new ReportesController($conn);
 
-        if ($a === 'reporteGeneral') {
-            $controller->ReporteGeneral();
-        } elseif ($a === 'reporteNegocio') {
-            $controller->ReporteNegocio();
-        } else {
-            header('Location: index.php?c=home&a=dashboardAdmin');
-            exit;
-        }
-        break;
-
-    default:
-        header('Location: index.php?c=auth&a=login');
+    if ($a === 'reporteGeneral') {
+        $controller->ReporteGeneral();
+    } elseif ($a === 'pdfReporteGeneral') {
+        $controller->PdfReporteGeneral();
+    } elseif ($a === 'reporteNegocio') {
+        $controller->ReporteNegocio();
+    } elseif ($a === 'pdfReporteNegocio') {
+        $controller->PdfReporteNegocio();
+    } elseif ($a === 'resumenTiendas') {
+        $controller->ResumenTiendas();
+    } elseif ($a === 'pdfResumenTiendas') {
+        $controller->PdfResumenTiendas();
+    } elseif ($a === 'usuarios') {
+        $controller->Usuarios();
+    } elseif ($a === 'pdfUsuarios') {
+        $controller->PdfUsuarios();
+    } elseif ($a === 'rolesPermisos') {
+        $controller->RolesPermisos();
+    } elseif ($a === 'pdfRolesPermisos') {
+        $controller->PdfRolesPermisos();
+    } else {
+        header('Location: index.php?c=home&a=dashboardAdmin');
         exit;
+    }
+    break;
+
 }
