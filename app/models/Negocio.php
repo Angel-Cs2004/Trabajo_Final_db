@@ -9,172 +9,180 @@ class Negocio
         $this->conn = $conn;
     }
 
-    public function obtenerTodos(): array
+    /**
+     * IMPORTANTE: cuando haces CALL con mysqli, a veces queda un result-set extra.
+     * Esto evita "Commands out of sync" en la siguiente consulta.
+     */
+    private function limpiarResultadosCall(): void
     {
-        $sql = "SELECT n.*, u.nombre AS propietario
-                FROM negocios n
-                INNER JOIN usuarios u ON n.id_propietario = u.id_usuario
-                WHERE n.activo = 1
-                ORDER BY n.nombre DESC";
-
-        $result = $this->conn->query($sql);
-        if (!$result) {
-            return [];
+        while ($this->conn->more_results() && $this->conn->next_result()) {
+            $extra = $this->conn->use_result();
+            if ($extra instanceof mysqli_result) {
+                $extra->free();
+            }
         }
-        return $result->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function obtenerPorPropietario(int $idPropietario): array
+    /**
+     * Antes: SELECT + foreach en PHP.
+     * Ahora: SP con filtros y disponibilidad calculada en BD.
+     */
+    public function obtenerTodos(): array
     {
-        $sql = "SELECT n.*, u.nombre AS propietario
-                FROM negocios n
-                INNER JOIN usuarios u ON n.id_propietario = u.id_usuario
-                WHERE n.activo = 1
-                  AND n.id_propietario = ?";
+        // Defaults: sin filtros, orden DESC como tú lo tenías
+        return $this->obtenerConFiltros(0, 'todos', 'todos', '', 'DESC');
+    }
+
+    /**
+     * Método extra útil para reportes/filtros (lo puedes usar en controladores).
+     * No rompe tu obtenerTodos() original.
+     */
+    public function obtenerConFiltros(
+        int $idPropietario = 0,
+        string $estado = 'todos',           // 'activo','inactivo','todos'
+        string $disponibilidad = 'todos',   // 'abierto','cerrado','todos'
+        string $busqueda = '',              // '' sin filtro
+        string $orden = 'DESC'              // 'ASC' o 'DESC'
+    ): array {
+        $sql = "CALL sp_negocios_listar(?, ?, ?, ?, ?)";
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) {
             return [];
         }
 
-        $stmt->bind_param('i', $idPropietario);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if (!$result) {
+        $stmt->bind_param('issss', $idPropietario, $estado, $disponibilidad, $busqueda, $orden);
+
+        if (!$stmt->execute()) {
+            $stmt->close();
+            $this->limpiarResultadosCall();
             return [];
         }
-        return $result->fetch_all(MYSQLI_ASSOC);
+
+        $result = $stmt->get_result();
+        $rows = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+
+        $stmt->close();
+        $this->limpiarResultadosCall();
+
+        return $rows;
     }
 
+    /**
+     * Antes: SELECT WHERE propietario = ?
+     * Ahora: mismo SP pero con p_id_propietario
+     */
+    public function obtenerPorPropietario(int $idPropietario): array
+    {
+        return $this->obtenerConFiltros($idPropietario, 'todos', 'todos', '', 'DESC');
+    }
+
+    /**
+     * Antes: SELECT WHERE id = ?
+     * Ahora: CALL sp_negocios_obtener_por_id
+     */
     public function obtenerPorId(int $idNegocio): ?array
     {
-        $sql = "SELECT n.*, u.nombre AS propietario
-                FROM negocios n
-                INNER JOIN usuarios u ON n.id_propietario = u.id_usuario
-                WHERE n.id_negocio = ?";
+        $sql = "CALL sp_negocios_obtener_por_id(?)";
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) {
             return null;
         }
 
         $stmt->bind_param('i', $idNegocio);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if (!$result) {
+
+        if (!$stmt->execute()) {
+            $stmt->close();
+            $this->limpiarResultadosCall();
             return null;
         }
-        $row = $result->fetch_assoc();
+
+        $result = $stmt->get_result();
+        $row = $result ? $result->fetch_assoc() : null;
+
+        $stmt->close();
+        $this->limpiarResultadosCall();
+
         return $row ?: null;
     }
 
-   public function crear(
+    /**
+     * Antes: INSERT directo
+     * Ahora: CALL sp_negocios_crear
+     */
+    public function crear(
         string $nombre,
         string $descripcion,
         ?string $imagen_logo,
         string $estado,
         string $hora_apertura,
         string $hora_cierre,
-        int $activo,
         int $idPropietario
     ): bool {
-
-        $sql = "INSERT INTO negocios 
-                (nombre, descripcion, estado, imagen_logo, hora_apertura, hora_cierre, activo, id_propietario)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
+        $sql = "CALL sp_negocios_crear(?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) {
             return false;
         }
 
-        // s = string, i = int
+        // tipos: s s s s s s i
         $stmt->bind_param(
-            'ssssssii',
+            'ssssssi',
             $nombre,
             $descripcion,
-            $estado,        // 'activo' / 'inactivo'
-            $imagen_logo,   // puede ser null
-            $hora_apertura, // '09:00:00'
-            $hora_cierre,   // '18:00:00'
-            $activo,        // 1 o 0
+            $estado,
+            $imagen_logo,
+            $hora_apertura,
+            $hora_cierre,
             $idPropietario
         );
 
-        return $stmt->execute();
+        $ok = $stmt->execute();
+        $stmt->close();
+        $this->limpiarResultadosCall();
+
+        return $ok;
     }
 
-
-public function actualizar(
-    int $idNegocio,
-    string $nombre,
-    string $descripcion,
-    ?string $imagen_logo,
-    string $estado,
-    string $hora_apertura,
-    string $hora_cierre,
-    int $activo,
-    ?int $idPropietario = null
-): bool {
-
-    if ($idPropietario !== null) {
-        // Admin / super_admin puede cambiar propietario
-        $sql = "UPDATE negocios
-                SET nombre = ?,
-                    descripcion = ?,
-                    estado = ?,
-                    imagen_logo = ?,
-                    hora_apertura = ?,
-                    hora_cierre = ?,
-                    activo = ?,
-                    id_propietario = ?
-                WHERE id_negocio = ?";
-
+    /**
+     * Antes: UPDATE con 2 ramas
+     * Ahora: 1 CALL.
+     * Regla: si $idPropietario es null => mandamos 0 (no cambia propietario)
+     */
+    public function actualizar(
+        int $idNegocio,
+        string $nombre,
+        string $descripcion,
+        ?string $imagen_logo,
+        string $estado,
+        string $hora_apertura,
+        string $hora_cierre,
+        ?int $idPropietario = null
+    ): bool {
+        $sql = "CALL sp_negocios_actualizar(?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->conn->prepare($sql);
-        if (!$stmt) return false;
+        if (!$stmt) {
+            return false;
+        }
 
+        $prop = ($idPropietario === null) ? 0 : $idPropietario;
+
+        // i s s s s s s i
         $stmt->bind_param(
-            'ssssssiii',
+            'issssssi',
+            $idNegocio,
             $nombre,
             $descripcion,
             $estado,
             $imagen_logo,
             $hora_apertura,
             $hora_cierre,
-            $activo,
-            $idPropietario,
-            $idNegocio
+            $prop
         );
 
-    } else {
-        // Propietario normal: no cambia id_propietario
-        $sql = "UPDATE negocios
-                SET nombre = ?,
-                    descripcion = ?,
-                    estado = ?,
-                    imagen_logo = ?,
-                    hora_apertura = ?,
-                    hora_cierre = ?,
-                    activo = ?
-                WHERE id_negocio = ?";
+        $ok = $stmt->execute();
+        $stmt->close();
+        $this->limpiarResultadosCall();
 
-        $stmt = $this->conn->prepare($sql);
-        if (!$stmt) return false;
-
-        $stmt->bind_param(
-            'ssssssii',
-            $nombre,
-            $descripcion,
-            $estado,
-            $imagen_logo,
-            $hora_apertura,
-            $hora_cierre,
-            $activo,
-            $idNegocio
-        );
+        return $ok;
     }
-
-    return $stmt->execute();
-}
-
-
-
 }

@@ -9,68 +9,113 @@ class ParametroImagen
         $this->conn = $conn;
     }
 
+    private function limpiarResultadosCall(): void
+    {
+        while ($this->conn->more_results() && $this->conn->next_result()) {
+            $extra = $this->conn->use_result();
+            if ($extra instanceof mysqli_result) {
+                $extra->free();
+            }
+        }
+    }
+
     // Obtener todos los parámetros
     public function obtenerTodos(): array
     {
-        $sql = "SELECT *
-                FROM parametros_imagenes
-                ORDER BY nombre ASC";
-
+        $sql = "CALL sp_parametros_imagenes_listar()";
         $result = $this->conn->query($sql);
-        return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+
+        $rows = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+        $this->limpiarResultadosCall();
+
+        return $rows;
     }
 
     // Obtener un parámetro por ID
     public function obtenerPorId(int $id): ?array
     {
-        $stmt = $this->conn->prepare(
-            "SELECT *
-             FROM parametros_imagenes
-             WHERE id_parametro_imagen = ?
-             LIMIT 1"
-        );
+        $sql = "CALL sp_parametros_imagenes_obtener_por_id(?)";
+        $stmt = $this->conn->prepare($sql);
+        if (!$stmt) return null;
+
         $stmt->bind_param("i", $id);
-        $stmt->execute();
+
+        if (!$stmt->execute()) {
+            $stmt->close();
+            $this->limpiarResultadosCall();
+            return null;
+        }
 
         $result = $stmt->get_result();
-        $dato = $result->fetch_assoc();
+        $dato = $result ? $result->fetch_assoc() : null;
+
+        $stmt->close();
+        $this->limpiarResultadosCall();
 
         return $dato ?: null;
     }
 
     // Crear un nuevo parámetro
-    public function crear($etiqueta, $tipo, $ancho, $alto, $tamano, $categoria, $formatos, $activo)
-    {
-        $stmt = $this->conn->prepare(
-            "INSERT INTO parametros_imagenes 
-            (etiqueta, tipo, ancho_px, alto_px, tamano_kb, categoria_admin, formatos_validos, activo)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-        );
+    public function crear(
+        ?string $nombre,
+        string $etiqueta,
+        int $ancho,
+        int $alto,
+        string $categoria,
+        string $formatos
+    ): bool {
+        $sql = "CALL sp_parametros_imagenes_crear(?, ?, ?, ?, ?, ?)";
+        $stmt = $this->conn->prepare($sql);
+        if (!$stmt) return false;
 
         $stmt->bind_param(
-            "ssiiissi",
-            $etiqueta, $tipo, $ancho, $alto, $tamano, $categoria, $formatos, $activo
+            "ssiiss",
+            $nombre,
+            $etiqueta,
+            $ancho,
+            $alto,
+            $categoria,
+            $formatos
         );
 
-        $stmt->execute();
+        $ok = $stmt->execute();
+
+        $stmt->close();
+        $this->limpiarResultadosCall();
+
+        return $ok;
     }
 
     // Actualizar parámetro existente
-    public function actualizar($id, $etiqueta, $tipo, $ancho, $alto, $tamano, $categoria, $formatos, $activo)
-    {
-        $stmt = $this->conn->prepare(
-            "UPDATE parametros_imagenes
-             SET etiqueta=?, tipo=?, ancho_px=?, alto_px=?, tamano_kb=?, 
-                 categoria_admin=?, formatos_validos=?, activo=?
-             WHERE id_parametro_imagen=?"
-        );
+    public function actualizar(
+        int $id,
+        ?string $nombre,
+        string $etiqueta,
+        int $ancho,
+        int $alto,
+        string $categoria,
+        string $formatos
+    ): bool {
+        $sql = "CALL sp_parametros_imagenes_actualizar(?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $this->conn->prepare($sql);
+        if (!$stmt) return false;
 
         $stmt->bind_param(
-            "ssiiissii",
-            $etiqueta, $tipo, $ancho, $alto, $tamano,
-            $categoria, $formatos, $activo, $id
+            "issiiss",
+            $id,
+            $nombre,
+            $etiqueta,
+            $ancho,
+            $alto,
+            $categoria,
+            $formatos
         );
 
-        $stmt->execute();
+        $ok = $stmt->execute();
+
+        $stmt->close();
+        $this->limpiarResultadosCall();
+
+        return $ok;
     }
 }
