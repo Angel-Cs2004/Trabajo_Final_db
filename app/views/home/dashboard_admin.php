@@ -117,53 +117,7 @@ require __DIR__ . '/../layouts/header.php';
             </a>
 
         </div>
-                <?php
-// Debug visual de la estructura de permisos del usuario logueado
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-if (isset($_SESSION['usuario_auth'])):
-    $auth = $_SESSION['usuario_auth'];
-?>
-    <div class="mt-6 p-4 bg-gray-100 rounded-lg text-sm text-gray-800">
-        <h2 class="font-semibold mb-2">Estructura de permisos (debug)</h2>
-
-        <p><strong>ID:</strong> <?= htmlspecialchars($auth['id']) ?></p>
-        <p><strong>Nombre:</strong> <?= htmlspecialchars($auth['nombre']) ?></p>
-
-        <p><strong>Roles:</strong> 
-            <?= !empty($auth['roles']) ? htmlspecialchars(implode(', ', $auth['roles'])) : '—' ?>
-        </p>
-
-        <p><strong>Módulos:</strong> 
-            <?= !empty($auth['modulos']) ? htmlspecialchars(implode(', ', $auth['modulos'])) : '—' ?>
-        </p>
-
-        <h3 class="font-semibold mt-3 mb-1">Permisos por módulo:</h3>
-        <ul class="list-disc ml-5 space-y-1">
-            <?php foreach ($auth['permisosPorModulo'] as $modulo => $perms): ?>
-                <li>
-                    <strong><?= htmlspecialchars($modulo) ?>:</strong>
-                    C = <?= $perms['C'] ? '1' : '0' ?>,
-                    R = <?= $perms['R'] ? '1' : '0' ?>,
-                    U = <?= $perms['U'] ? '1' : '0' ?>,
-                    D = <?= $perms['D'] ? '1' : '0' ?>
-                </li>
-            <?php endforeach; ?>
-        </ul>
-    </div>
-<?php else: ?>
-    <div class="mt-6 p-4 bg-red-100 rounded-lg text-sm text-red-800">
-        No hay $_SESSION['usuario_auth'] definida. Revisa el login.
-    </div>
-<?php endif; ?>
-
-
-    </div>
-</main>
-
-
+                
 
 
 

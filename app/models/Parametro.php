@@ -9,34 +9,48 @@ class ParametroImagen
         $this->conn = $conn;
     }
 
+    private function limpiarResultadosCall(): void
+    {
+        while ($this->conn->more_results() && $this->conn->next_result()) {
+            $extra = $this->conn->use_result();
+            if ($extra instanceof mysqli_result) {
+                $extra->free();
+            }
+        }
+    }
+
     // Obtener todos los parámetros
     public function obtenerTodos(): array
     {
-        $sql = "SELECT *
-                FROM parametros_imagenes
-                ORDER BY nombre ASC";
-
+        $sql = "CALL sp_parametros_imagenes_listar()";
         $result = $this->conn->query($sql);
-        return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+
+        $rows = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+        $this->limpiarResultadosCall();
+
+        return $rows;
     }
 
     // Obtener un parámetro por ID
     public function obtenerPorId(int $id): ?array
     {
-        $stmt = $this->conn->prepare(
-            "SELECT *
-             FROM parametros_imagenes
-             WHERE id_parametro_imagen = ?
-             LIMIT 1"
-        );
+        $sql = "CALL sp_parametros_imagenes_obtener_por_id(?)";
+        $stmt = $this->conn->prepare($sql);
         if (!$stmt) return null;
 
         $stmt->bind_param("i", $id);
-        $stmt->execute();
+
+        if (!$stmt->execute()) {
+            $stmt->close();
+            $this->limpiarResultadosCall();
+            return null;
+        }
 
         $result = $stmt->get_result();
-        $dato = $result->fetch_assoc();
+        $dato = $result ? $result->fetch_assoc() : null;
+
         $stmt->close();
+        $this->limpiarResultadosCall();
 
         return $dato ?: null;
     }
@@ -50,11 +64,8 @@ class ParametroImagen
         string $categoria,
         string $formatos
     ): bool {
-        $stmt = $this->conn->prepare(
-            "INSERT INTO parametros_imagenes 
-            (nombre, etiqueta, ancho_px, alto_px, categoria, formatos_validos)
-             VALUES (?, ?, ?, ?, ?, ?)"
-        );
+        $sql = "CALL sp_parametros_imagenes_crear(?, ?, ?, ?, ?, ?)";
+        $stmt = $this->conn->prepare($sql);
         if (!$stmt) return false;
 
         $stmt->bind_param(
@@ -68,7 +79,10 @@ class ParametroImagen
         );
 
         $ok = $stmt->execute();
+
         $stmt->close();
+        $this->limpiarResultadosCall();
+
         return $ok;
     }
 
@@ -82,27 +96,26 @@ class ParametroImagen
         string $categoria,
         string $formatos
     ): bool {
-        $stmt = $this->conn->prepare(
-            "UPDATE parametros_imagenes
-             SET nombre = ?, etiqueta = ?, ancho_px = ?, alto_px = ?, 
-                 categoria = ?, formatos_validos = ?
-             WHERE id_parametro_imagen = ?"
-        );
+        $sql = "CALL sp_parametros_imagenes_actualizar(?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $this->conn->prepare($sql);
         if (!$stmt) return false;
 
         $stmt->bind_param(
-            "ssiissi",
+            "issiiss",
+            $id,
             $nombre,
             $etiqueta,
             $ancho,
             $alto,
             $categoria,
-            $formatos,
-            $id
+            $formatos
         );
 
         $ok = $stmt->execute();
+
         $stmt->close();
+        $this->limpiarResultadosCall();
+
         return $ok;
     }
 }

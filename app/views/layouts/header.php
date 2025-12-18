@@ -13,11 +13,15 @@ $pageTitle = $pageTitle ?? 'Dashboard - Yahuarcocha';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?></title>
+    <link rel="icon" href="/Trabajo_Final_db/public/img/logo.ico?v=2" type="image/x-icon">
+    <link rel="icon" href="/Trabajo_Final_db/public/img/logo.png?v=2" type="image/png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
-<body class="bg-gray-100">
+<body class="bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200">
+
     <div class="flex h-screen">
         <!-- Sidebar -->
         <?php
