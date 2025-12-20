@@ -67,7 +67,12 @@ class ReportesController
         $categorias = $m->listarCategorias();
         $negocios   = $m->listarNegocios();
 
-        $porCategoria = [];
+        // Siempre llenar (0 => todo)
+        $porCategoria = $reportesModel->productosPorCategoria($idCategoria);
+
+        // (0,0 => todo) y respeta id_negocio si eliges uno
+        $porRango = $reportesModel->productosRangoPrecio($precioMin, $precioMax, $idNegocio);
+
         $porRango     = [];
 
         if ($idCategoria > 0) $porCategoria = $m->productosPorCategoria($idCategoria);

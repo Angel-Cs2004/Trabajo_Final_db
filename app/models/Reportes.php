@@ -35,6 +35,28 @@ class Reportes
 
     public function productosPorCategoria(int $idCategoria): array
     {
+        // 0 => todas las categorías
+        if ($idCategoria <= 0) {
+            $sql = "
+                SELECT 
+                    c.id_categoria,
+                    c.nombre AS categoria,
+                    p.id_producto,
+                    p.nombre AS producto,
+                    p.precio,
+                    n.nombre AS negocio,
+                    p.estado
+                FROM productos p
+                INNER JOIN categorias c ON p.id_categoria = c.id_categoria
+                INNER JOIN negocios n   ON p.id_negocio   = n.id_negocio
+                WHERE p.estado = 'activo'
+                ORDER BY c.nombre ASC, p.nombre ASC
+            ";
+            $res = $this->conn->query($sql);
+            return $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
+        }
+
+        // Si hay categoría => SP
         $stmt = $this->conn->prepare("CALL sp_reporte_productos_por_categoria(?)");
         if (!$stmt) return [];
 
@@ -43,12 +65,22 @@ class Reportes
         $result = $stmt->get_result();
         $data = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 
-        $this->limpiarSP($stmt);
+        $stmt->close();
+        while ($this->conn->more_results() && $this->conn->next_result()) {;}
+
         return $data;
     }
 
+
     public function productosRangoPrecio(float $min, float $max, int $idNegocio = 0): array
     {
+        if ($min < 0) $min = 0;
+
+        // Si max viene 0 => mostrar todo (hasta un valor grande)
+        if ($max <= 0) $max = 999999;
+
+        if ($max < $min) return [];
+
         $stmt = $this->conn->prepare("CALL sp_reporte_productos_rango_precio(?, ?, ?)");
         if (!$stmt) return [];
 
@@ -57,9 +89,12 @@ class Reportes
         $result = $stmt->get_result();
         $data = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 
-        $this->limpiarSP($stmt);
+        $stmt->close();
+        while ($this->conn->more_results() && $this->conn->next_result()) {;}
+
         return $data;
     }
+
 
     public function negociosPorPropietario(int $idPropietario): array
     {
