@@ -93,57 +93,79 @@ class ProductoNegocioController
 
     // Procesa el POST del formulario
     public function guardar()
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header("Location: index.php?c=productoNegocio&a=crear");
-            exit;
+{
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        header("Location: index.php?c=productoNegocio&a=crear");
+        exit;
+    }
+
+    $productoNegocioModel = new ProductoNegocio($this->conn);
+    $negocioModel         = new Negocio($this->conn);
+
+    $idUsuario = (int)($_SESSION['id_usuario'] ?? 0);
+    if ($idUsuario <= 0) {
+        header("Location: index.php?c=auth&a=login");
+        exit;
+    }
+
+    // Negocios del usuario
+    $negocios = $negocioModel->obtenerPorPropietario($idUsuario);
+    if (!$negocios || count($negocios) === 0) {
+        header("Location: index.php?c=negocio&a=crear");
+        exit;
+    }
+
+    $idNegocio = (int)($_POST['id_negocio'] ?? 0);
+    if ($idNegocio <= 0) {
+        header("Location: index.php?c=productoNegocio&a=crear");
+        exit;
+    }
+
+    $pertenece = false;
+    foreach ($negocios as $neg) {
+        if ((int)$neg['id_negocio'] === $idNegocio) {
+            $pertenece = true;
+            break;
         }
+    }
 
-        $productoNegocioModel = new ProductoNegocio($this->conn);
-        $negocioModel         = new Negocio($this->conn);
-
-        $idUsuario = (int)($_SESSION['id_usuario'] ?? 0);
-        if ($idUsuario <= 0) {
-            header("Location: index.php?c=auth&a=login");
-            exit;
-        }
-
-        // obtenerPorPropietario ahora devuelve array de negocios
-        $negocios = $negocioModel->obtenerPorPropietario($idUsuario);
-        if (!$negocios || count($negocios) === 0) {
-            // si no tiene negocios, lo mandamos a crear uno
-            header("Location: index.php?c=negocio&a=crear");
-            exit;
-        }
-
-        // Por ahora tomamos el primer negocio del propietario
-        $negocio   = $negocios[0];
-        $idNegocio = (int)$negocio['id_negocio'];
-
-        $nombre      = trim($_POST['nombre'] ?? '');
-        $precio      = (float)($_POST['precio'] ?? 0);
-        $urlImagen   = trim($_POST['url_imagen'] ?? '');
-        $estado      = $_POST['estado'] ?? 'activo';
-        $idCategoria = (int)($_POST['id_categoria'] ?? 0);
-
-        // Validación mínima
-        if ($nombre === '' || $precio <= 0 || $idCategoria <= 0) {
-            header("Location: index.php?c=productoNegocio&a=crear");
-            exit;
-        }
-
-        $productoNegocioModel->crearProducto(
-            $idNegocio,
-            $nombre,
-            $precio,
-            $urlImagen,
-            $estado,
-            $idCategoria
-        );
-
+    if (!$pertenece) {
+        // intento de usar un negocio que no es suyo
         header("Location: index.php?c=productoNegocio&a=listar");
         exit;
     }
+
+    // Datos del producto
+    $nombre      = trim($_POST['nombre'] ?? '');
+    $precio      = (float)($_POST['precio'] ?? 0);
+    $urlImagen   = trim($_POST['url_imagen'] ?? '');
+    $estado      = $_POST['estado'] ?? 'activo';
+    $idCategoria = (int)($_POST['id_categoria'] ?? 0);
+
+    // Validación mínima
+    if ($nombre === '' || $precio <= 0 || $idCategoria <= 0) {
+        header("Location: index.php?c=productoNegocio&a=crear");
+        exit;
+    }
+
+    // Crear SOLO en la tienda seleccionada
+    $res = $productoNegocioModel->crearProducto(
+        $idNegocio,
+        $nombre,
+        $precio,
+        $urlImagen,
+        $estado,
+        $idCategoria
+    );
+
+    $_SESSION['flash_tipo'] = $res['ok'] ? 'success' : 'error';
+    $_SESSION['flash_msg']  = $res['msg'];
+
+    header("Location: index.php?c=productoNegocio&a=listar");
+    exit;
+
+}
+
 
     public function editar()
     {
@@ -189,7 +211,7 @@ class ProductoNegocioController
             exit;
         }
 
-        $productoNegocio->editarProducto(
+        $res = $productoNegocio->editarProducto(
             $id_producto,
             $nombre,
             $precio,
@@ -198,8 +220,12 @@ class ProductoNegocioController
             $idCategoria
         );
 
+        $_SESSION['flash_tipo'] = $res['ok'] ? 'success' : 'error';
+        $_SESSION['flash_msg']  = $res['msg'];
+
         header("Location: index.php?c=productoNegocio&a=listar");
         exit;
+
     }
 
     public function eliminar()
@@ -253,7 +279,6 @@ class ProductoNegocioController
         exit;
     }
 
-    // 🚨 TOMAR EL NEGOCIO ELEGIDO EN EL FORMULARIO
     $idNegocio = (int)($_POST['id_negocio'] ?? 0);
 
     if ($idNegocio <= 0) {
@@ -261,7 +286,6 @@ class ProductoNegocioController
         exit;
     }
 
-    // 🚨 Validar que el negocio pertenece al usuario
     $pertenece = false;
     foreach ($negociosUsuario as $neg) {
         if ((int)$neg['id_negocio'] === $idNegocio) {
@@ -322,7 +346,7 @@ class ProductoNegocioController
         }
 
         // Crear producto
-        $ok = $productoModel->crearProducto(
+        $res = $productoModel->crearProducto(
             $idNegocio,
             $nombre,
             $precio,
@@ -331,7 +355,7 @@ class ProductoNegocioController
             $idCategoria
         );
 
-        if ($ok) {
+        if ($res['ok']) {
             $creados++;
         } else {
             $filasSaltadas++;

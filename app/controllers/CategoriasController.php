@@ -34,11 +34,17 @@ class CategoriasController
         // por defecto las creamos 'activo'
         $estado      = $_POST['estado'] ?? 'inactivo';
 
+        if (session_status() === PHP_SESSION_NONE) session_start();
+
         $categoriaModel = new Categoria($this->conn);
-        $categoriaModel->crearCategoria($nombre, $descripcion, $estado);
+        $res = $categoriaModel->crearCategoria($nombre, $descripcion, $estado);
+
+        $_SESSION['flash_tipo'] = $res['ok'] ? 'success' : 'error';
+        $_SESSION['flash_msg']  = $res['msg'];
 
         header("Location: index.php?c=categorias&a=listar");
         exit;
+
     }
 
     public function editar()
@@ -72,16 +78,17 @@ class CategoriasController
         $descripcion  = trim($_POST['descripcion'] ?? '');
         $estado       = $_POST['estado'] ?? 'inactivo';
 
+       if (session_status() === PHP_SESSION_NONE) session_start();
+
         $categoriaModel = new Categoria($this->conn);
-        $categoriaModel->editarCategoria(
-            $id_categoria,
-            $nombre,
-            $descripcion,
-            $estado
-        );
+        $res = $categoriaModel->editarCategoria($id_categoria, $nombre, $descripcion, $estado);
+
+        $_SESSION['flash_tipo'] = $res['ok'] ? 'success' : 'error';
+        $_SESSION['flash_msg']  = $res['msg'];
 
         header("Location: index.php?c=categorias&a=listar");
         exit;
+
     }
 
     public function desactivar()
@@ -96,15 +103,27 @@ class CategoriasController
         exit;
     }
 
-    public function eliminar()
-    {
-        $id_categoria = $_GET['id_categoria'] ?? null;
-        if ($id_categoria) {
-            $categoriaModel = new Categoria($this->conn);
-            $categoriaModel->eliminarCategoria((int)$id_categoria);
-        }
-
-        header("Location: index.php?c=categorias&a=listar");
-        exit;
+public function eliminar()
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
     }
+
+    $id_categoria = $_GET['id_categoria'] ?? null;
+
+    if ($id_categoria) {
+        $categoriaModel = new Categoria($this->conn);
+        $res = $categoriaModel->eliminarCategoria((int)$id_categoria);
+
+        $_SESSION['flash_tipo'] = $res['ok'] ? 'success' : 'error';
+        $_SESSION['flash_msg']  = $res['msg'];
+    } else {
+        $_SESSION['flash_tipo'] = 'error';
+        $_SESSION['flash_msg']  = 'ID de categoría inválido.';
+    }
+
+    header("Location: index.php?c=categorias&a=listar");
+    exit;
+}
+
 }

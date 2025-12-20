@@ -4,6 +4,16 @@ require __DIR__ . '/../../layouts/header.php';
 ?>
 
 <main class="flex-1 px-10 pt-14 pb-14 overflow-auto space-y-6">
+    <?php if (!empty($_SESSION['flash_msg'])): ?>
+    <div class="mb-4 px-4 py-3 rounded-lg border
+        <?= (($_SESSION['flash_tipo'] ?? '') === 'success')
+            ? 'bg-green-100 text-green-800 border-green-200'
+            : 'bg-red-100 text-red-800 border-red-200' ?>">
+        <?= htmlspecialchars($_SESSION['flash_msg']) ?>
+    </div>
+    <?php unset($_SESSION['flash_msg'], $_SESSION['flash_tipo']); ?>
+<?php endif; ?>
+
 
     <div class="bg-white rounded-lg shadow">
 

@@ -83,7 +83,7 @@ class ProductoGeneralController
             exit;
         }
 
-        $modeloProducto->crearProducto(
+        $res = $modeloProducto->crearProducto(
             $idNegocio,
             $nombre,
             $precio,
@@ -92,8 +92,12 @@ class ProductoGeneralController
             $idCategoria
         );
 
+        $_SESSION['flash_tipo'] = $res['ok'] ? 'success' : 'error';
+        $_SESSION['flash_msg']  = $res['msg'];
+
         header("Location: index.php?c=productoGeneral&a=listar");
         exit;
+
     }
 
     /**
@@ -153,8 +157,7 @@ class ProductoGeneralController
             header("Location: index.php?c=productoGeneral&a=listar");
             exit;
         }
-
-        $modeloProducto->editarProducto(
+        $res = $modeloProducto->editarProducto(
             $idProducto,
             $idNegocio,
             $nombre,
@@ -164,8 +167,12 @@ class ProductoGeneralController
             $idCategoria
         );
 
+        $_SESSION['flash_tipo'] = $res['ok'] ? 'success' : 'error';
+        $_SESSION['flash_msg']  = $res['msg'];
+
         header("Location: index.php?c=productoGeneral&a=listar");
         exit;
+
     }
 
     /**

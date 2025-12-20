@@ -778,7 +778,7 @@ END $$
 DELIMITER ;
 
 -- =========================================================
---  TRIGGERS (tuyos, sin cambiar)
+--  TRIGGERS 
 -- =========================================================
 DELIMITER $$
 
@@ -828,6 +828,112 @@ BEGIN
 END$$
 
 DELIMITER ;
+-- =============================
+-- TRIGGERS: CATEGORIAS => Evitar duplicados con los nombres o al editar
+-- =============================
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS trg_categorias_nombre_unico_ins $$
+CREATE TRIGGER trg_categorias_nombre_unico_ins
+BEFORE INSERT ON categorias
+FOR EACH ROW
+BEGIN
+    DECLARE v_count INT;
+
+    SELECT COUNT(*)
+    INTO v_count
+    FROM categorias
+    WHERE nombre = NEW.nombre;
+
+    IF v_count > 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'No se puede crear la categoría: ya existe una con ese nombre';
+    END IF;
+END $$
+
+DELIMITER ;
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS trg_categorias_nombre_unico_upd $$
+CREATE TRIGGER trg_categorias_nombre_unico_upd
+BEFORE UPDATE ON categorias
+FOR EACH ROW
+BEGIN
+    DECLARE v_count INT;
+
+    -- Solo valida si realmente cambia el nombre
+    IF NEW.nombre <> OLD.nombre THEN
+        SELECT COUNT(*)
+        INTO v_count
+        FROM categorias
+        WHERE nombre = NEW.nombre
+          AND id_categoria <> OLD.id_categoria;
+
+        IF v_count > 0 THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'No se puede cambiar el nombre: ya existe otra categoría con ese nombre';
+        END IF;
+    END IF;
+END $$
+
+DELIMITER ;
+
+-- =============================
+-- TRIGGERS: PRODUCTOS => Evitar duplicados con los nombres o al editar
+-- =============================
+
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS trg_productos_nombre_unico_por_negocio_ins $$
+CREATE TRIGGER trg_productos_nombre_unico_por_negocio_ins
+BEFORE INSERT ON productos
+FOR EACH ROW
+BEGIN
+    DECLARE v_count INT;
+
+    SELECT COUNT(*)
+    INTO v_count
+    FROM productos
+    WHERE id_negocio = NEW.id_negocio
+      AND TRIM(nombre) = TRIM(NEW.nombre);
+
+    IF v_count > 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'No se puede crear el producto: ya existe otro con ese nombre en esta tienda';
+    END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS trg_productos_nombre_unico_por_negocio_upd $$
+CREATE TRIGGER trg_productos_nombre_unico_por_negocio_upd
+BEFORE UPDATE ON productos
+FOR EACH ROW
+BEGIN
+    DECLARE v_count INT;
+
+    IF TRIM(NEW.nombre) <> TRIM(OLD.nombre)
+       OR NEW.id_negocio <> OLD.id_negocio THEN
+
+        SELECT COUNT(*)
+        INTO v_count
+        FROM productos
+        WHERE id_negocio = NEW.id_negocio
+          AND TRIM(nombre) = TRIM(NEW.nombre)
+          AND id_producto <> OLD.id_producto;
+
+        IF v_count > 0 THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'No se puede actualizar el producto: ya existe otro con ese nombre en esta tienda';
+        END IF;
+    END IF;
+END $$
+
+DELIMITER ;
+
+
 
 -- =========================================================
 --  PROCEDIMIENTOS EXTRA (tuyos, sin cambiar)

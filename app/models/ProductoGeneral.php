@@ -62,44 +62,43 @@ class ProductoGeneral
         return $dato ?: null;
     }
 
-    /**
-     * Crear producto (modo general, se indica explícitamente el negocio)
-     */
-    public function crearProducto(
+public function crearProducto(
         int $id_negocio,
         string $nombre,
         float $precio,
         ?string $url_imagen,
         string $estado,
         int $id_categoria
-    ): bool {
+    ): array {
         $sql = "INSERT INTO productos
                     (nombre, precio, url_imagen, estado, id_categoria, id_negocio)
                 VALUES (?, ?, ?, ?, ?, ?)";
 
         $stmt = $this->conn->prepare($sql);
-        if (!$stmt) return false;
+        if (!$stmt) return ['ok' => false, 'msg' => 'No se pudo preparar la consulta.'];
 
-        $stmt->bind_param(
-            "sdssii",
-            $nombre,
-            $precio,
-            $url_imagen,
-            $estado,
-            $id_categoria,
-            $id_negocio
-        );
+        $stmt->bind_param("sdssii", $nombre, $precio, $url_imagen, $estado, $id_categoria, $id_negocio);
 
-        $ok = $stmt->execute();
-        $stmt->close();
+        try {
+            $stmt->execute();
+            $stmt->close();
+            return ['ok' => true, 'msg' => 'Producto creado correctamente.'];
+        } catch (mysqli_sql_exception $e) {
+            $stmt->close();
 
-        return $ok;
+            if ((int)$e->getCode() === 45000) {
+                return ['ok' => false, 'msg' => $e->getMessage()];
+            }
+
+            if ((int)$e->getCode() === 1062) {
+                return ['ok' => false, 'msg' => 'Ya existe un producto con ese nombre en esa tienda.'];
+            }
+
+            return ['ok' => false, 'msg' => 'Error al crear el producto.'];
+        }
     }
 
-    /**
-     * Actualizar producto (modo general)
-     */
-    public function editarProducto(
+public function editarProducto(
         int $id_producto,
         int $id_negocio,
         string $nombre,
@@ -107,7 +106,7 @@ class ProductoGeneral
         ?string $url_imagen,
         string $estado,
         int $id_categoria
-    ): bool {
+    ): array {
         $sql = "UPDATE productos
                 SET nombre      = ?,
                     precio      = ?,
@@ -118,28 +117,29 @@ class ProductoGeneral
                 WHERE id_producto = ?";
 
         $stmt = $this->conn->prepare($sql);
-        if (!$stmt) return false;
+        if (!$stmt) return ['ok' => false, 'msg' => 'No se pudo preparar la consulta.'];
 
-        $stmt->bind_param(
-            "sdssiii",
-            $nombre,
-            $precio,
-            $url_imagen,
-            $estado,
-            $id_categoria,
-            $id_negocio,
-            $id_producto
-        );
+        $stmt->bind_param("sdssiii", $nombre, $precio, $url_imagen, $estado, $id_categoria, $id_negocio, $id_producto);
 
-        $ok = $stmt->execute();
-        $stmt->close();
+        try {
+            $stmt->execute();
+            $stmt->close();
+            return ['ok' => true, 'msg' => 'Producto actualizado correctamente.'];
+        } catch (mysqli_sql_exception $e) {
+            $stmt->close();
 
-        return $ok;
+            if ((int)$e->getCode() === 45000) {
+                return ['ok' => false, 'msg' => $e->getMessage()];
+            }
+
+            if ((int)$e->getCode() === 1062) {
+                return ['ok' => false, 'msg' => 'No se puede cambiar: ya existe un producto con ese nombre en esa tienda.'];
+            }
+
+            return ['ok' => false, 'msg' => 'Error al actualizar el producto.'];
+        }
     }
 
-    /**
-     * Eliminar producto
-     */
     public function eliminar(int $id_producto): bool
     {
         $sql = "DELETE FROM productos WHERE id_producto = ?";

@@ -4,6 +4,32 @@ require __DIR__ . '/../layouts/header.php';
 ?>
 
 <main class="flex-1 px-10 pt-14 pb-14 overflow-auto">
+    <?php if (!empty($_SESSION['flash_msg'])): ?>
+    <?php
+        $tipo = $_SESSION['flash_tipo'] ?? 'success';
+        $msg  = $_SESSION['flash_msg'] ?? '';
+        unset($_SESSION['flash_msg'], $_SESSION['flash_tipo']);
+
+        $clase = ($tipo === 'success')
+            ? 'bg-green-50 border-green-300 text-green-800'
+            : 'bg-red-50 border-red-300 text-red-800';
+    ?>
+
+    <div class="mx-0 mb-4 border rounded-lg px-4 py-3 <?= $clase ?>">
+        <div class="flex items-start justify-between">
+            <div class="text-sm font-medium">
+                <?= htmlspecialchars($msg) ?>
+            </div>
+
+            <button type="button"
+                    class="ml-4 text-lg leading-none opacity-60 hover:opacity-100"
+                    onclick="this.closest('div.border').remove()">
+                ×
+            </button>
+        </div>
+    </div>
+<?php endif; ?>
+
     <div class="bg-white rounded-lg shadow">
 
         <!-- Header -->

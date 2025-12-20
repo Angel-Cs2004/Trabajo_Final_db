@@ -47,36 +47,54 @@ class ProductoNegocio
     /**
      * Crea un producto asociado a un negocio
      */
-    public function crearProducto(
-        int $id_negocio,
-        string $nombre,
-        float $precio,
-        ?string $url_imagen,
-        string $estado,
-        int $id_categoria
-    ): bool {
-        $sql = "INSERT INTO productos 
-                    (nombre, precio, url_imagen, estado, id_categoria, id_negocio)
-                VALUES (?, ?, ?, ?, ?, ?)";
+public function crearProducto(
+    int $id_negocio,
+    string $nombre,
+    float $precio,
+    ?string $url_imagen,
+    string $estado,
+    int $id_categoria
+): array {
+    $sql = "INSERT INTO productos 
+                (nombre, precio, url_imagen, estado, id_categoria, id_negocio)
+            VALUES (?, ?, ?, ?, ?, ?)";
 
-        $stmt = $this->conn->prepare($sql);
-        if (!$stmt) return false;
+    $stmt = $this->conn->prepare($sql);
+    if (!$stmt) {
+        return ['ok' => false, 'msg' => 'No se pudo preparar la consulta.'];
+    }
 
-        $stmt->bind_param(
-            "sdssii",
-            $nombre,
-            $precio,
-            $url_imagen,
-            $estado,
-            $id_categoria,
-            $id_negocio
-        );
+    $stmt->bind_param(
+        "sdssii",
+        $nombre,
+        $precio,
+        $url_imagen,
+        $estado,
+        $id_categoria,
+        $id_negocio
+    );
 
-        $ok = $stmt->execute();
+    try {
+        $stmt->execute();
+        $stmt->close();
+        return ['ok' => true, 'msg' => 'Producto creado correctamente.'];
+    } catch (mysqli_sql_exception $e) {
         $stmt->close();
 
-        return $ok;
+        // 45000 = SIGNAL del trigger (duplicado u otras validaciones de negocio)
+        if ((int)$e->getCode() === 45000) {
+            return ['ok' => false, 'msg' => $e->getMessage()];
+        }
+
+        // 1062 = Duplicate entry (si un día usas UNIQUE en vez de trigger)
+        if ((int)$e->getCode() === 1062) {
+            return ['ok' => false, 'msg' => 'Ya existe un producto con ese nombre en esta tienda.'];
+        }
+
+        return ['ok' => false, 'msg' => 'No se puede crear el producto. Ya existe un producto similar en tu tienda.'];
     }
+}
+
 
     /**
      * Obtener un producto por ID
@@ -105,42 +123,48 @@ class ProductoNegocio
     /**
      * Edita un producto (incluyendo cambiar la categoría)
      */
-    public function editarProducto(
-        int $id_producto,
-        string $nombre,
-        float $precio,
-        ?string $url_imagen,
-        string $estado,
-        int $id_categoria
-    ): bool {
-        $sql = "UPDATE productos 
-                SET nombre = ?, 
-                    precio = ?, 
-                    url_imagen = ?, 
-                    estado = ?,
-                    id_categoria = ?
-                WHERE id_producto = ?";
+public function editarProducto(
+    int $id_producto,
+    string $nombre,
+    float $precio,
+    ?string $url_imagen,
+    string $estado,
+    int $id_categoria
+): array {
+    $sql = "UPDATE productos 
+            SET nombre = ?, 
+                precio = ?, 
+                url_imagen = ?, 
+                estado = ?,
+                id_categoria = ?
+            WHERE id_producto = ?";
 
-        $stmt = $this->conn->prepare($sql);
-        if (!$stmt) {
-            return false;
-        }
+    $stmt = $this->conn->prepare($sql);
+    if (!$stmt) {
+        return ['ok' => false, 'msg' => 'No se pudo preparar la consulta.'];
+    }
 
-        $stmt->bind_param(
-            "sdssii",
-            $nombre,
-            $precio,
-            $url_imagen,
-            $estado,
-            $id_categoria,
-            $id_producto
-        );
+    $stmt->bind_param("sdssii", $nombre, $precio, $url_imagen, $estado, $id_categoria, $id_producto);
 
-        $ok = $stmt->execute();
+    try {
+        $stmt->execute();
+        $stmt->close();
+        return ['ok' => true, 'msg' => 'Producto actualizado correctamente.'];
+    } catch (mysqli_sql_exception $e) {
         $stmt->close();
 
-        return $ok;
+        if ((int)$e->getCode() === 45000) {
+            return ['ok' => false, 'msg' => $e->getMessage()];
+        }
+
+        if ((int)$e->getCode() === 1062) {
+            return ['ok' => false, 'msg' => 'No se puede cambiar el nombre: ya existe un producto con ese nombre en esta tienda.'];
+        }
+
+        return ['ok' => false, 'msg' => 'No es posible cambiar el nombre, Ya existe un producto similar en tu tienda.'];
     }
+}
+
 
     public function eliminarProducto(int $id_producto): bool
     {
