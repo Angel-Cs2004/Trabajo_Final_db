@@ -362,7 +362,6 @@ class ProductoNegocioController
         }
     }
 
-    // Guardar mensaje
     $_SESSION['import_msg'] =
         "Productos creados: {$creados}. Filas con error: {$filasSaltadas}. Productos con imagen no válida: {$conErrorImagen}.";
 
