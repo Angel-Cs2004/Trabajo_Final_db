@@ -3,7 +3,7 @@ $pageTitle = "Negocios";
 require __DIR__ . '/../layouts/header.php';
 ?>
 
-<main class="flex-1 px-10 pt-14 pb-14 overflow-auto">
+<main class="flex-1 px-10 pt-10 pb-14 overflow-auto">
     <div class="bg-white rounded-lg shadow">
 
         <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -11,11 +11,12 @@ require __DIR__ . '/../layouts/header.php';
                 <div class="bg-green-100 p-2 rounded mr-3"></div>
                 <h1 class="text-xl font-semibold text-gray-800">Administrar negocios</h1>
             </div>
-
-            <a href="index.php?c=negocio&a=crear"
-               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center text-sm font-medium">
-                <span class="mr-1">+</span> Crear
-            </a>
+            <?php if (can('NEGOCIO_GEN', 'C')): ?>
+                <a href="index.php?c=negocio&a=crear"
+                   class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center text-sm font-medium">
+                    <span class="mr-1">+</span> Crear
+                </a>
+            <?php endif; ?>
         </div>
 
         <!-- Controles -->
@@ -23,7 +24,7 @@ require __DIR__ . '/../layouts/header.php';
             <div class="flex items-center space-x-4">
                 <span class="text-sm text-gray-600">Mostrar</span>
                 <select id="recordsPerPage" class="border border-gray-300 rounded px-2 py-1 text-sm">
-                    <option>10</option>
+                    <option>8</option>
                     <option>25</option>
                     <option>50</option>
                 </select>
@@ -51,7 +52,7 @@ require __DIR__ . '/../layouts/header.php';
                     </tr>
                 </thead>
 
-                <tbody id="negociosTableBody">
+                <tbody id="tableBody">
                     <?php if (!empty($negocios)): ?>
                         <?php foreach ($negocios as $negocio): ?>
                             <tr class="hover:bg-gray-50">
@@ -81,10 +82,12 @@ require __DIR__ . '/../layouts/header.php';
                                 <td class="px-6 py-3"><?= htmlspecialchars($negocio['propietario'] ?? '-') ?></td>
 
                                 <td class="px-6 py-3">
-                                    <a href="index.php?c=negocio&a=editar&id=<?= $negocio['id_negocio'] ?>"
-                                       class="bg-purple-900 hover:bg-purple-800 text-white px-3 py-1 rounded text-xs">
-                                       Editar
-                                    </a>
+                                    <?php if (can('NEGOCIO_GEN', 'U')): ?>
+                                        <a href="index.php?c=negocio&a=editar&id=<?= $negocio['id_negocio'] ?>"
+                                        class="bg-purple-900 hover:bg-purple-800 text-white px-3 py-1 rounded text-xs">
+                                        Editar
+                                        </a>
+                                    <?php endif; ?>
                                 </td>
 
                             </tr>
@@ -100,7 +103,15 @@ require __DIR__ . '/../layouts/header.php';
 
             </table>
         </div>
+        <div class="px-6 py-4 flex justify-between items-center text-sm">
+                <span id="paginationInfo" class="text-gray-600"></span>
 
+                <div class="flex space-x-1">
+                    <button id="prevPage" class="px-2 py-1 border rounded hover:bg-gray-100">Anterior</button>
+                    <span id="currentPage" class="px-3 py-1 border rounded bg-green-100">1</span>
+                    <button id="nextPage" class="px-2 py-1 border rounded hover:bg-gray-100">Siguiente</button>
+                </div>
+        </div>
     </div>
 </main>
 

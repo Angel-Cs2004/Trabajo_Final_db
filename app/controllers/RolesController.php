@@ -11,6 +11,14 @@ class RolesController
     public function __construct(mysqli $conn)
     {
         $this->conn = $conn;
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['id_usuario'])) {
+            header("Location: index.php?c=auth&a=login");
+            exit;
+        }
     }
 
     private function asegurarSesionAdmin()
@@ -25,15 +33,24 @@ class RolesController
             exit;
         }
     }
-
+    private function authorize(string $mod, string $perm): void
+    {
+        if (!can($mod, $perm)) {
+            http_response_code(403);
+            exit('No autorizado');
+        }
+    }
     // ========== LISTAR ==========
 
     public function index()
     {
+        $this->authorize('ROL', 'R');
         $this->asegurarSesionAdmin();
 
         $modelo = new Roles($this->conn);
         $roles = $modelo->obtenerTodos();
+
+        
 
         // leer mensaje de error (si viene desde eliminar)
         $error = $_GET['error'] ?? null;
@@ -46,6 +63,7 @@ class RolesController
 
     public function crear()
     {
+        $this->authorize('ROL', 'C');
         $this->asegurarSesionAdmin();
 
         $tagsModel = new Tags($this->conn);
@@ -59,6 +77,7 @@ class RolesController
 
     public function guardar()
     {
+        $this->authorize('ROL', 'U');
         $this->asegurarSesionAdmin();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

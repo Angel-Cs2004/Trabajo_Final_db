@@ -7,10 +7,28 @@ class CategoriasController
     public function __construct(mysqli $conn)
     {
         $this->conn = $conn;
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['id_usuario'])) {
+            header("Location: index.php?c=auth&a=login");
+            exit;
+        }
     }
 
+    private function authorize(string $mod, string $perm): void
+    {
+        if (!can($mod, $perm)) {
+            http_response_code(403);
+            exit('No autorizado');
+        }
+    }
+    
     public function listar()
     {
+        $this->authorize('CATEGORIA', 'R');
         $categoriaModel = new Categoria($this->conn);
         $categorias = $categoriaModel->obtenerTodas();
 
@@ -19,11 +37,13 @@ class CategoriasController
 
     public function crear()
     {
+        $this->authorize('CATEGORIA', 'C');
         require __DIR__ . '/../views/categorias/crear.php';
     }
 
     public function guardar()
     {
+        $this->authorize('CATEGORIA', 'U');
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header("Location: index.php?c=categorias&a=crear");
             exit;

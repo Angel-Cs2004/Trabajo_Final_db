@@ -3,7 +3,7 @@ $pageTitle = "Administración de Usuarios";
 require __DIR__ . '/../layouts/header.php';
 ?>
 
-<main class="flex-1 px-10 pt-14 pb-14 overflow-auto">
+<main class="flex-1 px-10 pt-10 pb-14 overflow-auto">
     <div class="bg-white rounded-lg shadow">
 
         <!-- Header -->
@@ -14,10 +14,12 @@ require __DIR__ . '/../layouts/header.php';
                 <h1 class="text-xl font-semibold text-gray-800">Administración de Usuarios</h1>
             </div>
 
-            <a href="index.php?c=usuarios&a=crear"
-               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center text-sm font-medium">
-                <span class="mr-1">+</span> Crear
-            </a>
+            <?php if (can('USUARIO', 'C')): ?>
+                <a href="index.php?c=usuarios&a=crear"
+                   class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center text-sm font-medium">
+                    <span class="mr-1">+</span> Crear
+                </a>
+            <?php endif; ?>
         </div>
 
         <!-- Controles -->
@@ -25,7 +27,7 @@ require __DIR__ . '/../layouts/header.php';
             <div class="flex items-center space-x-4">
                 <span class="text-sm text-gray-600">Mostrar</span>
                 <select id="recordsPerPage" class="border border-gray-300 rounded px-2 py-1 text-sm">
-                    <option>10</option>
+                    <option>8</option>
                     <option>25</option>
                     <option>50</option>
                 </select>
@@ -73,10 +75,12 @@ require __DIR__ . '/../layouts/header.php';
                             </td>
 
                             <td class="px-6 py-3">
+                                <?php if (can('USUARIO', 'U')): ?>
                                 <a href="index.php?c=usuarios&a=editar&id=<?= $user['id_usuario'] ?>"
                                    class="bg-purple-900 hover:bg-purple-800 text-white px-3 py-1 rounded text-xs">
                                     Editar
                                 </a>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -90,7 +94,15 @@ require __DIR__ . '/../layouts/header.php';
                 </tbody>
             </table>
         </div>
+        <div class="px-6 py-4 flex justify-between items-center text-sm">
+                <span id="paginationInfo" class="text-gray-600"></span>
 
+                <div class="flex space-x-1">
+                    <button id="prevPage" class="px-2 py-1 border rounded hover:bg-gray-100">Anterior</button>
+                    <span id="currentPage" class="px-3 py-1 border rounded bg-green-100">1</span>
+                    <button id="nextPage" class="px-2 py-1 border rounded hover:bg-gray-100">Siguiente</button>
+                </div>
+        </div>
     </div>
 </main>
 

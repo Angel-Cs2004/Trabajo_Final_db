@@ -9,6 +9,14 @@ class ParametrosController
     public function __construct(mysqli $conn)
     {
         $this->conn = $conn;
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['id_usuario'])) {
+            header("Location: index.php?c=auth&a=login");
+            exit;
+        }
     }
 
     // Verifica sesión y rol de administrador
@@ -26,9 +34,18 @@ class ParametrosController
         
     }
 
+    private function authorize(string $mod, string $perm): void
+    {
+        if (!can($mod, $perm)) {
+            http_response_code(403);
+            exit('No autorizado');
+        }
+    }
+
     // Listar parámetros
     public function index()
     {
+        $this->authorize('IMAGEN', 'R');
         $this->asegurarSesionAdmin();
 
         $modelo = new ParametroImagen($this->conn);
@@ -47,6 +64,7 @@ class ParametrosController
     // Guardar nuevo parámetro
     public function guardar()
     {
+        $this->authorize('IMAGEN', 'C');
         $this->asegurarSesionAdmin();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -80,6 +98,7 @@ class ParametrosController
     // Formulario de edicion
     public function editar()
     {
+        $this->authorize('IMAGEN', 'U');
         $this->asegurarSesionAdmin();
 
         $id = intval($_GET['id'] ?? 0);

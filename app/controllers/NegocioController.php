@@ -27,6 +27,13 @@ class NegocioController
             exit;
         }
     }
+    private function authorize(string $mod, string $perm): void
+    {
+        if (!can($mod, $perm)) {
+            http_response_code(403);
+            exit('No autorizado');
+        }
+    }
 
     public function index()
     {

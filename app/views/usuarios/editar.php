@@ -8,6 +8,14 @@ require __DIR__ . '/../layouts/header.php';
     <div class="bg-white w-full max-w-5xl mx-auto rounded-lg shadow-lg p-8">
 
         <h3 class="text-xl font-semibold mb-6">Actualización de Usuario</h3>
+        <!-- Mensaje de error si no se pudo eliminar el rol -->
+        <?php if (!empty($error) && $error === 'no_coinciden'): ?>
+            <div class="px-6 py-3 bg-red-50 border-b border-red-200">
+                <p class="text-sm text-red-700">
+                    No se puede actualizar porque las contraseña no coinciden.
+                </p>
+            </div>
+        <?php endif; ?>
 
         <form action="index.php?c=usuarios&a=actualizar" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -86,6 +94,12 @@ require __DIR__ . '/../layouts/header.php';
                     <div>
                         <label class="block text-sm font-medium mb-1">Nueva Contraseña:</label>
                         <input name="clave" 
+                            type="password" 
+                            class="w-full border rounded-lg px-4 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Escriba de nuevo la contraseña:</label>
+                        <input name="clave_confirm" 
                             type="password" 
                             class="w-full border rounded-lg px-4 py-2">
                     </div>

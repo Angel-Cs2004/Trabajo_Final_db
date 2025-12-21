@@ -12,11 +12,12 @@ require __DIR__ . '/../layouts/header.php';
                 <div class="bg-green-100 p-2 rounded mr-3"></div>
                 <h1 class="text-xl font-semibold text-gray-800">Mis negocios</h1>
             </div>
-
-            <a href="index.php?c=negocio&a=crearPropietario"
-            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center text-sm font-medium">
-                <span class="mr-1">+</span> Crear negocio
-            </a>
+            <?php if (can('NEGOCIO_PROP', 'C')): ?>
+                <a href="index.php?c=negocio&a=crearPropietario"
+                   class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center text-sm font-medium">
+                    <span class="mr-1">+</span> Crear
+                </a>
+            <?php endif; ?>
 
         </div>
 

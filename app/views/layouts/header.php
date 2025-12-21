@@ -6,7 +6,16 @@ $rolUsuario    = $_SESSION['rol']    ?? null;
 $nombre = $_SESSION['nombre'] ?? 'Usuario';
 $pageTitle = $pageTitle ?? 'Dashboard - Yahuarcocha';
 
+$permisosModulo = $_SESSION['usuario_auth']['permisosPorModulo'] ?? [];
+
+$showRolesUsuarios = can('USUARIO','R') || can('ROL','R');
+$showNegocios      = can('NEGOCIO_GEN','R') || can('NEGOCIO_PROP','R');
+$showProductos     = can('PRODUCTO_GEN','R') || can('PRODUCTO_PROP','R') || can('CATEGORIA','R');
+$showReportes      = can('REPORTE_GEN','R') || can('REPORTE_PROP','R');
+
+
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>

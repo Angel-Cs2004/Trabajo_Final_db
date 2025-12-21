@@ -1,10 +1,15 @@
 <?php
 $pageTitle = "Mis productos";
 require __DIR__ . '/../../layouts/header.php';
+
+$canCrearProducto  = can('PRODUCTO_PROP', 'C');
+$canEditarProducto = can('PRODUCTO_PROP', 'U');
+
+$showAcciones = $canEditarProducto || $canCrearProducto;
 ?>
 
-<main class="flex-1 px-10 pt-14 pb-14 overflow-auto space-y-6">
- <?php if (!empty($_SESSION['flash_msg'])): ?>
+<main class="flex-1 px-10 pt-8 pb-14 overflow-auto space-y-6">
+    <?php if (!empty($_SESSION['flash_msg'])): ?>
         <div class="mb-4 px-4 py-3 rounded-lg border
             <?= (($_SESSION['flash_tipo'] ?? '') === 'success')
                 ? 'bg-green-100 text-green-800 border-green-200'
@@ -13,6 +18,7 @@ require __DIR__ . '/../../layouts/header.php';
         </div>
         <?php unset($_SESSION['flash_msg'], $_SESSION['flash_tipo']); ?>
     <?php endif; ?>
+
     <!-- Subida masiva de productos -->
     <div class="bg-white rounded-lg shadow">
         <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -24,36 +30,34 @@ require __DIR__ . '/../../layouts/header.php';
                 <p class="text-sm text-gray-600 mb-1">
                     Seleccione un archivo Excel
                 </p>
-                <p class="text-xs text-gray-400">
-                    (Deja listo el formulario, luego implementas la lógica en el controlador)
-                </p>
+
             </div>
-                <form action="index.php?c=productoNegocio&a=importar"
-                    method="POST"
-                    enctype="multipart/form-data"
-                    class="flex items-center gap-3">
 
-                    <!-- NUEVO: seleccionar negocio -->
-                    <select name="id_negocio" class="border rounded px-2 py-1 text-sm" required>
-                        <option value="">-- Seleccione negocio --</option>
-                        <?php foreach ($negocios as $neg): ?>
-                            <option value="<?= (int)$neg['id_negocio'] ?>">
-                                <?= htmlspecialchars($neg['nombre']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+            <form action="index.php?c=productoNegocio&a=importar"
+                  method="POST"
+                  enctype="multipart/form-data"
+                  class="flex items-center gap-3">
 
-                    <input type="file"
-                        name="archivo_productos"
-                        accept=".xlsx,.xls"
-                        class="text-sm" />
+                <!-- seleccionar negocio -->
+                <select name="id_negocio" class="border rounded px-2 py-1 text-sm" required>
+                    <option value="">-- Seleccione negocio --</option>
+                    <?php foreach ($negocios as $neg): ?>
+                        <option value="<?= (int)$neg['id_negocio'] ?>">
+                            <?= htmlspecialchars($neg['nombre']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
 
-                    <button type="submit"
-                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center text-sm font-medium">
-                        <span class="mr-1 bi bi-upload"></span> Importar
-                    </button>
-                </form>
+                <input type="file"
+                       name="archivo_productos"
+                       accept=".xlsx,.xls"
+                       class="text-sm" />
 
+                <button type="submit"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center text-sm font-medium">
+                    <span class="mr-1 bi bi-upload"></span> Importar
+                </button>
+            </form>
         </div>
     </div>
 
@@ -69,10 +73,12 @@ require __DIR__ . '/../../layouts/header.php';
                 <h1 class="text-xl font-semibold text-gray-800">Administración de Productos</h1>
             </div>
 
-            <a href="index.php?c=productoNegocio&a=crear"
-               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center text-sm font-medium">
-                <span class="mr-1">+</span> Crear
-            </a>
+            <?php if ($canCrearProducto): ?>
+                <a href="index.php?c=productoNegocio&a=crear"
+                   class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center text-sm font-medium">
+                    <span class="mr-1">+</span> Crear
+                </a>
+            <?php endif; ?>
         </div>
 
         <!-- Controles -->
@@ -80,7 +86,7 @@ require __DIR__ . '/../../layouts/header.php';
             <div class="flex items-center space-x-2">
                 <span class="text-sm text-gray-600">Mostrar</span>
                 <select id="recordsPerPage" class="border border-gray-300 rounded px-2 py-1 text-sm">
-                    <option>10</option>
+                    <option>8</option>
                     <option>25</option>
                     <option>50</option>
                 </select>
@@ -105,7 +111,10 @@ require __DIR__ . '/../../layouts/header.php';
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+
+                        <?php if ($showAcciones): ?>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                        <?php endif; ?>
                     </tr>
                 </thead>
 
@@ -133,24 +142,37 @@ require __DIR__ . '/../../layouts/header.php';
                                         <?= htmlspecialchars($prod['estado'] ?? 'inactivo') ?>
                                     </span>
                                 </td>
-                                <td class="px-6 py-3">
-                                    <a href="index.php?c=productoNegocio&a=editar&id_producto=<?= $prod['id_producto'] ?>"
-                                    class="bg-purple-900 hover:bg-purple-800 text-white px-3 py-1 rounded text-xs">
-                                        Editar
-                                    </a>
 
-                                </td>
+                                <?php if ($showAcciones): ?>
+                                    <td class="px-6 py-3">
+                                        <?php if ($canEditarProducto): ?>
+                                            <a href="index.php?c=productoNegocio&a=editar&id_producto=<?= (int)$prod['id_producto'] ?>"
+                                               class="bg-purple-900 hover:bg-purple-800 text-white px-3 py-1 rounded text-xs">
+                                                Editar
+                                            </a>
+                                        <?php endif; ?>
+                                    </td>
+                                <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6" class="text-center text-gray-500 py-4">
+                            <td colspan="<?= $showAcciones ? 6 : 5 ?>" class="text-center text-gray-500 py-4">
                                 No se encontraron productos.
                             </td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
+        </div>
+        <div class="px-6 py-4 flex justify-between items-center text-sm">
+                <span id="paginationInfo" class="text-gray-600"></span>
+
+                <div class="flex space-x-1">
+                    <button id="prevPage" class="px-2 py-1 border rounded hover:bg-gray-100">Anterior</button>
+                    <span id="currentPage" class="px-3 py-1 border rounded bg-green-100">1</span>
+                    <button id="nextPage" class="px-2 py-1 border rounded hover:bg-gray-100">Siguiente</button>
+                </div>
         </div>
 
     </div>

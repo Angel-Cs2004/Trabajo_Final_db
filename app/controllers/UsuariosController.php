@@ -10,6 +10,14 @@ class UsuariosController
     public function __construct(mysqli $conn)
     {
         $this->conn = $conn;
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['id_usuario'])) {
+            header("Location: index.php?c=auth&a=login");
+            exit;
+        }
     }
 
     // Verifica sesión y permisos de administrador
@@ -25,9 +33,18 @@ class UsuariosController
         }
     }
 
+    private function authorize(string $mod, string $perm): void
+    {
+        if (!can($mod, $perm)) {
+            http_response_code(403);
+            exit('No autorizado');
+        }
+    }
+
     // Listar usuarios
     public function index()
     {
+        $this->authorize('USUARIO', 'R');
         $this->asegurarSesionAdmin();
 
         $modelo = new Usuarios($this->conn);
@@ -39,6 +56,7 @@ class UsuariosController
     // Formulario de creación
     public function crear()
     {
+        $this->authorize('USUARIO', 'C');
         $this->asegurarSesionAdmin();
 
         $modelo = new Usuarios($this->conn);
@@ -50,6 +68,7 @@ class UsuariosController
     // Guardar nuevo usuario
     public function guardar()
     {
+        $this->authorize('USUARIO', 'U');
         $this->asegurarSesionAdmin();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -98,6 +117,7 @@ class UsuariosController
 
         $modelo = new Usuarios($this->conn);
 
+        $error = $_GET['error'] ?? null;
         $usuario       = $modelo->obtenerPorId($id);
         $rolesUsuarios = $modelo->obtenerRoles();
 
@@ -107,6 +127,7 @@ class UsuariosController
     // Actualizar usuario
     public function actualizar()
     {
+        
         $this->asegurarSesionAdmin();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -122,6 +143,7 @@ class UsuariosController
         $estado = ($_POST['estado'] ?? 'inactivo') === 'activo' ? 'activo' : 'inactivo';
         $rolNombre      = trim($_POST['rol'] ?? '');      // ← nombre del rol
         $password       = trim($_POST['clave'] ?? '');
+        $passwordConfirm = trim($_POST['clave_confirm'] ?? '');
 
         $modelo = new Usuarios($this->conn);
 
@@ -133,6 +155,10 @@ class UsuariosController
             $modelo->actualizarSinClave($id, $nombre, $correo, $identificacion, $telefono, $estado, $idRol);
         } else {
             // HASHEAR la nueva contraseña
+            if ($password !== $passwordConfirm) {
+                header("Location: index.php?c=usuarios&a=editar&id=$id&error=no_coinciden");
+                exit;
+            }
             $passwordHash = PasswordHelper::hash($password);
             // Actualizar incluyendo nueva clave hasheada
             $modelo->actualizar($id, $nombre, $correo, $identificacion, $telefono, $passwordHash, $estado, $idRol);

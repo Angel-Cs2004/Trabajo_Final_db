@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';   // <--- NUEVO
+require_once __DIR__ . '/../app/helpers/permisos.php';
+
 
 // Configuración de base de datos
 require_once __DIR__ . '/../app/config/db.php';

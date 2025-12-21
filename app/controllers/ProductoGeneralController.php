@@ -1,7 +1,5 @@
 <?php
 
-
-
 require_once __DIR__ . '/../models/ProductoGeneral.php';
 require_once __DIR__ . '/../models/Negocio.php';
 require_once __DIR__ . '/../models/Categoria.php';
@@ -28,11 +26,20 @@ class ProductoGeneralController
         // if (($_SESSION['rol'] ?? '') !== 'super_admin') { ... }
     }
 
+    private function authorize(string $mod, string $perm): void
+    {
+        if (!can($mod, $perm)) {
+            http_response_code(403);
+            exit('No autorizado');
+        }
+    }
+
     /**
      * Lista TODOS los productos de TODOS los negocios
      */
     public function listar()
     {
+        $this->authorize('PRODUCTO_GEN', 'R');
         $modelo = new ProductoGeneral($this->conn);
         $productos = $modelo->obtenerTodos();
 
@@ -44,6 +51,7 @@ class ProductoGeneralController
      */
     public function crear()
     {
+        $this->authorize('PRODUCTO_GEN', 'C');
         $categoriaModel = new Categoria($this->conn);
         $negocioModel   = new Negocio($this->conn);
 
@@ -58,6 +66,7 @@ class ProductoGeneralController
      */
     public function guardar()
     {
+        $this->authorize('PRODUCTO_GEN', 'U');
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header("Location: index.php?c=productoGeneral&a=listar");
             exit;

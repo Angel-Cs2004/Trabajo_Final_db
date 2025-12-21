@@ -3,7 +3,7 @@ $pageTitle = "Categorías";
 require __DIR__ . '/../layouts/header.php';
 ?>
 
-<main class="flex-1 px-10 pt-14 pb-14 overflow-auto">
+<main class="flex-1 px-10 pt-10 pb-14 overflow-auto">
     <?php if (!empty($_SESSION['flash_msg'])): ?>
     <?php
         $tipo = $_SESSION['flash_tipo'] ?? 'success';
@@ -78,7 +78,7 @@ require __DIR__ . '/../layouts/header.php';
                     </tr>
                 </thead>
 
-                <tbody id="categoriasTableBody">
+                <tbody id="tableBody">
                     <?php if (!empty($categorias)): ?>
                         <?php foreach ($categorias as $categoria): ?>
                             <tr class="hover:bg-gray-50">
@@ -113,18 +113,21 @@ require __DIR__ . '/../layouts/header.php';
 
                                 <!-- Acciones -->
                                 <td class="px-6 py-3 space-x-2">
+
+                                    <?php if (can('CATEGORIA', 'U')): ?>
                                     <a href="index.php?c=categorias&a=editar&id_categoria=<?= $categoria['id_categoria'] ?>"
                                        class="bg-purple-900 hover:bg-purple-800 text-white px-3 py-1 rounded text-xs">
                                         Editar
                                     </a>
+                                    <?php endif; ?>
 
-
-
+                                    <?php if (can('IMAGEN', 'D')): ?>
                                     <a href="index.php?c=categorias&a=eliminar&id_categoria=<?= $categoria['id_categoria'] ?>"
                                        class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs"
                                        onclick="return confirm('¿Seguro que deseas eliminar esta categoría?');">
                                         Eliminar
                                     </a>
+                                    <?php endif; ?>
                                 </td>
 
                             </tr>
@@ -140,7 +143,15 @@ require __DIR__ . '/../layouts/header.php';
 
             </table>
         </div>
+        <div class="px-6 py-4 flex justify-between items-center text-sm">
+                <span id="paginationInfo" class="text-gray-600"></span>
 
+                <div class="flex space-x-1">
+                    <button id="prevPage" class="px-2 py-1 border rounded hover:bg-gray-100">Anterior</button>
+                    <span id="currentPage" class="px-3 py-1 border rounded bg-green-100">1</span>
+                    <button id="nextPage" class="px-2 py-1 border rounded hover:bg-gray-100">Siguiente</button>
+                </div>
+        </div>
     </div>
 </main>
 
