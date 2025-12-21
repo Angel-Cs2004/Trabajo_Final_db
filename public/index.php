@@ -219,7 +219,7 @@ case 'productoGeneral':
 
     // REPORTES
 
-    case 'reporte':
+case 'reporte':
     $controller = new ReportesController($conn);
 
     if ($a === 'reporteGeneral') {
@@ -230,6 +230,10 @@ case 'productoGeneral':
         $controller->ReporteNegocio();
     } elseif ($a === 'pdfReporteNegocio') {
         $controller->PdfReporteNegocio();
+    } elseif ($a === 'detalleTienda') {
+        $controller->DetalleTienda();
+    } elseif ($a === 'pdfDetalleTienda') {
+        $controller->PdfDetalleTienda();
     } elseif ($a === 'resumenTiendas') {
         $controller->ResumenTiendas();
     } elseif ($a === 'pdfResumenTiendas') {
@@ -242,10 +246,30 @@ case 'productoGeneral':
         $controller->RolesPermisos();
     } elseif ($a === 'pdfRolesPermisos') {
         $controller->PdfRolesPermisos();
+    } elseif ($a === 'reporteNegocioMio') {
+    $controller->ReporteNegocioMio();
+    } elseif ($a === 'pdfReporteNegocioMio') {
+        $controller->PdfReporteNegocioMio();
+    } elseif ($a === 'misNegocios') {
+        $controller->MisNegocios();
+    } elseif ($a === 'pdfMisNegocios') {
+        $controller->PdfMisNegocios();
+
+    } elseif ($a === 'misProductos') {
+        $controller->MisProductos();
+    } elseif ($a === 'pdfMisProductos') {
+        $controller->PdfMisProductos();
+
+    } elseif ($a === 'miTienda') {
+        $controller->MiTienda();
+    } elseif ($a === 'pdfMiTienda') {
+        $controller->PdfMiTienda();
     } else {
         header('Location: index.php?c=home&a=dashboardAdmin');
         exit;
     }
     break;
+
+
 
 }

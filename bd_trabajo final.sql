@@ -1380,3 +1380,15 @@ BEGIN
 END $$
 
 DELIMITER ;
+DROP PROCEDURE IF EXISTS sp_listar_propietarios_con_negocios;
+DELIMITER $$
+CREATE PROCEDURE sp_listar_propietarios_con_negocios()
+BEGIN
+  SELECT DISTINCT
+    u.id_usuario,
+    u.nombre
+  FROM usuarios u
+  INNER JOIN negocios n ON n.id_propietario = u.id_usuario
+  ORDER BY u.nombre ASC;
+END $$
+DELIMITER ;

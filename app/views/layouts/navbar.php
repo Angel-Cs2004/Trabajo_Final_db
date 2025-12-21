@@ -149,7 +149,7 @@
             </button>
             <div id="submenuReportes" class="ml-4 mt-2 space-y-1 hidden">
                 <a href="index.php?c=reporte&a=reporteGeneral" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Reportes generales</a>
-                <a href="index.php?c=reporte&a=reporteNegocio" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Reportes tienda</a>
+        <a href="index.php?c=reporte&a=reporteNegocioMio" class="block px-4 py-2 text-sm hover:bg-green-700 rounded">Reportes tienda</a>
             </div>
         </div>
     </nav>
