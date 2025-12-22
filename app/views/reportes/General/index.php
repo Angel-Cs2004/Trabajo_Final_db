@@ -60,16 +60,6 @@ $runDetalle = isset($_GET['run_detalle']) ? (int)$_GET['run_detalle'] : 0;
          class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium">
         Descargar PDF
       </a>
-      <a href="index.php?<?= $queryPdfCategorias ?>"
-   class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium">
-  Descargar PDF
-</a>
-<a href="index.php?<?= $queryPdfParametros ?>"
-   class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium">
-  Descargar PDF
-</a>
-
-
     </div>
 
     <!-- Filtros -->
