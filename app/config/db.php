@@ -1,17 +1,12 @@
 <?php
-// app/config/db.php
+$DB_HOST = '127.0.0.1';
+$DB_PORT = 3306;
 
-$DB_HOST = '127.0.0.1';        // o 'localhost', o '127.0.0.1:3306' si quieres incluir el puerto
-$DB_USER = 'root';
-$DB_PASS = '';           // LA MISMA CLAVE QUE USAS EN WORKBENCH
+$DB_USER = 'negocios_app';
+$DB_PASS = 'elyud el prosor';
 $DB_NAME = 'db_negocios_2025';
 
-$conn = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-if ($conn->connect_error) {
-    die('Error de conexión a la base de datos: ' . $conn->connect_error);
-}
-
-if (!$conn->set_charset("utf8mb4")) {
-    die('Error al configurar el charset: ' . $conn->error);
-}
+$conn = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME, $DB_PORT);
+$conn->set_charset("utf8mb4");

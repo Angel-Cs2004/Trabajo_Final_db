@@ -322,4 +322,26 @@ class Reportes
             'precio_promedio' => number_format(array_sum($precios) / count($precios), 2),
         ];
     }
+    // =====================================================
+    // TABLEROS (listas completas)
+    // =====================================================
+
+    public function categoriasTablero(): array
+    {
+        $sql = "SELECT id_categoria, nombre, descripcion, estado
+                FROM categorias
+                ORDER BY nombre ASC";
+        $res = $this->conn->query($sql);
+        return $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
+    }
+
+    public function parametrosTablero(): array
+    {
+        $sql = "SELECT id_parametro_imagen, nombre, etiqueta, alto_px, ancho_px, categoria, formatos_validos
+                FROM parametros_imagenes
+                ORDER BY nombre ASC";
+        $res = $this->conn->query($sql);
+        return $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
+    }
+
 }

@@ -466,6 +466,90 @@ $runDetalle = isset($_GET['run_detalle']) ? (int)$_GET['run_detalle'] : 0;
   <?php endif; ?>
 
 </div>
+<!-- ===================================================== -->
+<!-- BLOQUE 4: TABLERO DE CATEGORÍAS -->
+<!-- ===================================================== -->
+<div class="bg-white rounded-lg shadow">
+  <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+    <h1 class="text-xl font-semibold text-gray-800">Tablero de Categorías</h1>
+    <span class="text-xs text-gray-500">Total: <?= !empty($categoriasTablero) ? count($categoriasTablero) : 0 ?></span>
+  </div>
+
+  <div class="px-6 py-6">
+    <?php if (!empty($categoriasTablero)): ?>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-2 text-left">ID</th>
+              <th class="px-4 py-2 text-left">Nombre</th>
+              <th class="px-4 py-2 text-left">Descripción</th>
+              <th class="px-4 py-2 text-left">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($categoriasTablero as $c): ?>
+              <tr class="border-t hover:bg-gray-50">
+                <td class="px-4 py-2"><?= (int)($c['id_categoria'] ?? 0) ?></td>
+                <td class="px-4 py-2"><?= htmlspecialchars($c['nombre'] ?? '-') ?></td>
+                <td class="px-4 py-2"><?= htmlspecialchars($c['descripcion'] ?? '-') ?></td>
+                <td class="px-4 py-2"><?= htmlspecialchars($c['estado'] ?? '-') ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php else: ?>
+      <p class="text-gray-500 text-sm">No hay categorías registradas.</p>
+    <?php endif; ?>
+  </div>
+</div>
+
+<!-- ===================================================== -->
+<!-- BLOQUE 5: TABLERO DE PARÁMETROS DE IMÁGENES -->
+<!-- ===================================================== -->
+<div class="bg-white rounded-lg shadow">
+  <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+    <h1 class="text-xl font-semibold text-gray-800">Tablero de Parámetros (Imágenes)</h1>
+    <span class="text-xs text-gray-500">Total: <?= !empty($parametrosTablero) ? count($parametrosTablero) : 0 ?></span>
+  </div>
+
+  <div class="px-6 py-6">
+    <?php if (!empty($parametrosTablero)): ?>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-2 text-left">ID</th>
+              <th class="px-4 py-2 text-left">Nombre</th>
+              <th class="px-4 py-2 text-left">Etiqueta</th>
+              <th class="px-4 py-2 text-left">Categoría</th>
+              <th class="px-4 py-2 text-left">Ancho</th>
+              <th class="px-4 py-2 text-left">Alto</th>
+              <th class="px-4 py-2 text-left">Formatos</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($parametrosTablero as $p): ?>
+              <tr class="border-t hover:bg-gray-50">
+                <td class="px-4 py-2"><?= (int)($p['id_parametro_imagen'] ?? 0) ?></td>
+                <td class="px-4 py-2"><?= htmlspecialchars($p['nombre'] ?? '-') ?></td>
+                <td class="px-4 py-2"><?= htmlspecialchars($p['etiqueta'] ?? '-') ?></td>
+                <td class="px-4 py-2"><?= htmlspecialchars($p['categoria'] ?? '-') ?></td>
+                <td class="px-4 py-2"><?= htmlspecialchars((string)($p['ancho_px'] ?? '-')) ?></td>
+                <td class="px-4 py-2"><?= htmlspecialchars((string)($p['alto_px'] ?? '-')) ?></td>
+                <td class="px-4 py-2"><?= htmlspecialchars($p['formatos_validos'] ?? '-') ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php else: ?>
+      <p class="text-gray-500 text-sm">No hay parámetros registrados.</p>
+    <?php endif; ?>
+  </div>
+</div>
+
 
 
 

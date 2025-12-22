@@ -139,8 +139,12 @@ if ($runDetalle === 1 && $idNegocioDet > 0) {
 
         $resumen = $m->resumenPreciosProductos($productos);
     }
-}
-
+} 
+    // =========================
+    // BLOQUE 4 y 5: TABLEROS (categorías y parámetros)
+    // =========================
+    $categoriasTablero = $m->categoriasTablero();
+    $parametrosTablero = $m->parametrosTablero();
 
     // OJO: tu carpeta real es /reportes/General/
     require __DIR__ . '/../views/reportes/General/index.php';
