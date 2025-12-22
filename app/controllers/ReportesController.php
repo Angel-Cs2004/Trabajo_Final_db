@@ -149,6 +149,36 @@ if ($runDetalle === 1 && $idNegocioDet > 0) {
     // OJO: tu carpeta real es /reportes/General/
     require __DIR__ . '/../views/reportes/General/index.php';
 }
+    public function PdfCategorias()
+    {
+        $this->asegurarSesion();
+        $m = new Reportes($this->conn);
+
+        $categoriasTablero = $m->categoriasTablero();
+
+        $html = $this->htmlDesdeVista(
+            __DIR__ . '/../views/reportes/General/pdf_categorias.php',
+            compact('categoriasTablero')
+        );
+
+        $this->generarPDF($html, 'tablero_categorias.pdf');
+    }
+
+    public function PdfParametros()
+    {
+        $this->asegurarSesion();
+        $m = new Reportes($this->conn);
+
+        $parametrosTablero = $m->parametrosTablero();
+
+        $html = $this->htmlDesdeVista(
+            __DIR__ . '/../views/reportes/General/pdf_parametros.php',
+            compact('parametrosTablero')
+        );
+
+        $this->generarPDF($html, 'tablero_parametros.pdf');
+    }
+
 
 
 

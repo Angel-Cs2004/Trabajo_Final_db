@@ -19,6 +19,16 @@ $queryPdfUsuarios = http_build_query([
     'id_rol'  => $idRolU ?? 0,
     'estado'  => $estadoU ?? 'todos',
 ]);
+$queryPdfCategorias = http_build_query([
+  'c' => 'reporte',
+  'a' => 'pdfCategorias',
+]);
+
+$queryPdfParametros = http_build_query([
+  'c' => 'reporte',
+  'a' => 'pdfParametros',
+]);
+
 
 $runGeneral  = isset($_GET['run_general']) ? (int)$_GET['run_general'] : 0;
 $runUsuarios = isset($_GET['run_usuarios']) ? (int)$_GET['run_usuarios'] : 0;
@@ -50,6 +60,16 @@ $runDetalle = isset($_GET['run_detalle']) ? (int)$_GET['run_detalle'] : 0;
          class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium">
         Descargar PDF
       </a>
+      <a href="index.php?<?= $queryPdfCategorias ?>"
+   class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium">
+  Descargar PDF
+</a>
+<a href="index.php?<?= $queryPdfParametros ?>"
+   class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium">
+  Descargar PDF
+</a>
+
+
     </div>
 
     <!-- Filtros -->
